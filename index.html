@@ -1168,8 +1168,8 @@
               itemStyle: { color: colorMap.saving, borderRadius: [4, 4, 0, 0] },
               label: {
                 show: !compact,
-                position: "top",
-                color: colorMap.saving,
+                position: "insideTop",
+                color: "#ffffff",
                 fontWeight: 800,
                 formatter: ({ value }) => (Number(value) ? formatNumber(value) : ""),
               },
@@ -1181,10 +1181,13 @@
               symbolSize: 7,
               lineStyle: { width: 3, color: colorMap.income },
               label: {
+                show: false,
+              },
+              endLabel: {
                 show: !compact,
-                position: "top",
+                formatter: ({ value }) => `累计 ${formatNumber(value)}`,
                 color: colorMap.income,
-                formatter: ({ value }) => formatNumber(value),
+                fontWeight: 800,
               },
               data: cumulativeData,
             },
@@ -1379,9 +1382,10 @@
       }
 
       function statusForRow(row) {
+        if (row.savingRate >= 1.2) return { label: "超额", badge: "status-green", className: "green" };
         if (row.savingRate >= 1) return { label: "达标", badge: "status-green", className: "green" };
-        if (row.savingRate >= 0.8 || row.variance >= -500) return { label: "关注", badge: "status-amber", className: "amber" };
-        return { label: "风险", badge: "status-red", className: "red" };
+        if (row.savingRate > 0) return { label: "待完成", badge: "status-amber", className: "amber" };
+        return { label: "未完成", badge: "status-red", className: "red" };
       }
 
       function lineSeries(name, data, color) {
