@@ -323,7 +323,67 @@
       }
 
       .progress-panel .chart {
-        height: 408px;
+        height: 360px;
+      }
+
+      .progress-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 16px;
+      }
+
+      .progress-head h2 {
+        margin-bottom: 8px;
+      }
+
+      .progress-score {
+        min-width: 132px;
+        text-align: right;
+      }
+
+      .progress-score strong {
+        display: block;
+        color: var(--blue);
+        font-size: 30px;
+        line-height: 1;
+      }
+
+      .progress-score span {
+        display: block;
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .progress-summary {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .progress-metric {
+        min-width: 0;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #f8fafc;
+      }
+
+      .progress-metric span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .progress-metric strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 20px;
+        line-height: 1.1;
+        font-weight: 820;
       }
 
       .accounts-panel {
@@ -602,6 +662,19 @@
           height: 330px;
         }
 
+        .progress-head {
+          display: block;
+        }
+
+        .progress-score {
+          margin-top: 12px;
+          text-align: left;
+        }
+
+        .progress-summary {
+          grid-template-columns: 1fr;
+        }
+
         .account-summary {
           grid-template-columns: 1fr;
         }
@@ -666,8 +739,14 @@
 
         <section class="dashboard-grid">
           <article class="card panel progress-panel" id="saving-progress">
-            <h2>年度存款进度</h2>
-            <p class="section-subtitle">实际存款、累计存款与目标进度对比</p>
+            <div class="progress-head">
+              <div>
+                <h2>年度存款进度</h2>
+                <p class="section-subtitle">跟踪累计存款与年度目标的距离，判断当前节奏是否需要调整。</p>
+              </div>
+              <div class="progress-score" id="savingProgressScore"></div>
+            </div>
+            <div class="progress-summary" id="savingProgressSummary"></div>
             <div class="chart" id="savingProgressChart"></div>
           </article>
 
@@ -1147,12 +1226,23 @@
           cumulativeTarget += row.targetSaving;
           return cumulativeTarget;
         });
+        renderSavingProgressSummary(monthly, cumulativeData, targetData);
 
         chart.setOption({
           color: [colorMap.saving, colorMap.income, colorMap.target],
-          tooltip: { trigger: "axis" },
-          legend: { top: 0, data: ["实际存款", "累计存款", "目标进度"] },
-          grid: { left: compact ? 48 : 58, right: 24, top: 58, bottom: compact ? 44 : 34 },
+          tooltip: {
+            trigger: "axis",
+            axisPointer: { type: "line" },
+            formatter(items) {
+              const month = items[0]?.axisValue || "";
+              return [
+                `<strong>${month}</strong>`,
+                ...items.map((item) => `${item.marker}${item.seriesName}：${formatNumber(item.value)}`),
+              ].join("<br/>");
+            },
+          },
+          legend: { top: 0, right: 4, data: ["实际存款", "累计存款", "目标进度"] },
+          grid: { left: compact ? 46 : 58, right: compact ? 18 : 56, top: 56, bottom: compact ? 44 : 34 },
           xAxis: {
             type: "category",
             data: monthly.map((row) => row.month),
@@ -1178,7 +1268,8 @@
             {
               name: "累计存款",
               type: "line",
-              symbolSize: 7,
+              showSymbol: false,
+              smooth: true,
               lineStyle: { width: 3, color: colorMap.income },
               label: {
                 show: false,
@@ -1196,10 +1287,43 @@
               type: "line",
               symbol: "none",
               lineStyle: { width: 2, type: "dashed", color: colorMap.target },
+              emphasis: { disabled: true },
               data: targetData,
             },
           ],
         });
+      }
+
+      function renderSavingProgressSummary(monthly, cumulativeData, targetData) {
+        const actualRows = monthly.filter((row) => row.income || row.expense || row.saving);
+        const activeCount = actualRows.length || 1;
+        const latestSaving = cumulativeData[cumulativeData.length - 1] || 0;
+        const finalTarget = targetData[targetData.length - 1] || 0;
+        const targetToDate = targetData[Math.max(activeCount - 1, 0)] || 0;
+        const paceVariance = latestSaving - targetToDate;
+        const projected = Math.round((latestSaving / activeCount) * monthly.length);
+        const score = rate(latestSaving, finalTarget);
+
+        document.getElementById("savingProgressScore").innerHTML = `
+          <strong>${formatPercent(score)}</strong>
+          <span>年度目标完成率</span>`;
+
+        const metrics = [
+          { label: "累计存款", value: formatNumber(latestSaving), color: "green" },
+          { label: "年度目标", value: formatNumber(finalTarget), color: "" },
+          { label: "当前节奏", value: formatSigned(paceVariance), color: paceVariance >= 0 ? "green" : "red" },
+          { label: "预计年末", value: formatNumber(projected), color: projected >= finalTarget ? "green" : "amber" },
+        ];
+
+        document.getElementById("savingProgressSummary").innerHTML = metrics
+          .map(
+            (item) => `
+              <div class="progress-metric">
+                <span>${item.label}</span>
+                <strong class="${item.color}">${item.value}</strong>
+              </div>`,
+          )
+          .join("");
       }
 
       function renderCashflowChart(monthly) {
