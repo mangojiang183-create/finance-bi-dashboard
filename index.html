@@ -289,27 +289,40 @@
       }
 
       .asset-mini-chart {
+        display: grid;
+        align-content: center;
+        gap: 10px;
         width: 100%;
         height: 108px;
         align-self: end;
       }
 
-      .asset-mini-chart svg {
-        width: 100%;
+      .asset-progress-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      .asset-progress-track {
+        height: 10px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e2e8f0;
+      }
+
+      .asset-progress-fill {
         height: 100%;
-        overflow: visible;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #2563eb, #60a5fa);
       }
 
-      .spark-area {
-        fill: rgba(37, 99, 235, 0.09);
-      }
-
-      .spark-line {
-        fill: none;
-        stroke: var(--blue);
-        stroke-width: 3;
-        stroke-linecap: round;
-        stroke-linejoin: round;
+      .asset-progress-foot {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
       }
 
       .kpi-meta {
@@ -357,6 +370,10 @@
         grid-column: span 8;
       }
 
+      .progress-panel .chart {
+        height: 408px;
+      }
+
       .accounts {
         grid-column: span 4;
       }
@@ -391,7 +408,7 @@
       }
 
       .wide-chart {
-        height: 318px;
+        height: 408px;
       }
 
       .accounts {
@@ -607,6 +624,10 @@
         .wide-chart,
         #monthlyChart {
           height: 310px;
+        }
+
+        .progress-panel .chart {
+          height: 350px;
         }
 
         .dashboard-grid {
@@ -1129,7 +1150,16 @@
                 <span>较目标 <strong class="${varianceClass}">${formatSigned(current.variance)}</strong></span>
               </div>
             </div>
-            <div class="asset-mini-chart">${sparklineSvg(data.monthly.map((row) => row.saving))}</div>
+            <div class="asset-mini-chart">
+              <div class="asset-progress-head">
+                <span>目标进度</span>
+                <strong class="blue">${formatPercent(completion)}</strong>
+              </div>
+              <div class="asset-progress-track">
+                <div class="asset-progress-fill" style="width: ${Math.min(completion * 100, 100).toFixed(1)}%"></div>
+              </div>
+              <div class="asset-progress-foot">目标 ${formatNumber(current.targetSaving)} · 当前 ${formatNumber(current.saving)}</div>
+            </div>
           </article>
           ${cards
             .map(
@@ -1368,28 +1398,6 @@
           },
           data,
         };
-      }
-
-      function sparklineSvg(values) {
-        const data = values.length ? values : [0];
-        const width = 156;
-        const height = 96;
-        const padding = 8;
-        const max = Math.max(...data, 1);
-        const min = Math.min(...data, 0);
-        const range = Math.max(max - min, 1);
-        const points = data.map((value, index) => {
-          const x = padding + (index / Math.max(data.length - 1, 1)) * (width - padding * 2);
-          const y = height - padding - ((value - min) / range) * (height - padding * 2);
-          return [x, y];
-        });
-        const line = points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-        const area = `${padding},${height - padding} ${line} ${width - padding},${height - padding}`;
-        return `
-          <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="存款趋势">
-            <polyline class="spark-area" points="${area}"></polyline>
-            <polyline class="spark-line" points="${line}"></polyline>
-          </svg>`;
       }
 
       function getChart(id) {
