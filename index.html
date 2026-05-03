@@ -116,7 +116,7 @@
 
       .kpi-grid {
         display: grid;
-        grid-template-columns: minmax(320px, 2.1fr) repeat(3, minmax(180px, 1fr));
+        grid-template-columns: minmax(460px, 2.4fr) repeat(3, minmax(180px, 1fr));
         gap: 16px;
         margin-bottom: 22px;
       }
@@ -135,10 +135,38 @@
 
       .asset-card {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 156px;
+        grid-template-columns: minmax(0, 1fr) 168px;
         gap: 18px;
-        min-height: 156px;
+        min-height: 186px;
         padding: 22px;
+      }
+
+      .overview-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .overview-label {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .overview-badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        padding: 0 9px;
+        border-radius: 999px;
+        background: #eff6ff;
+        color: var(--blue);
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
       }
 
       .kpi-title {
@@ -158,6 +186,48 @@
 
       .asset-card .kpi-value {
         font-size: 42px;
+      }
+
+      .overview-progress {
+        margin-top: 16px;
+      }
+
+      .overview-progress-track {
+        height: 8px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e2e8f0;
+      }
+
+      .overview-progress-fill {
+        height: 100%;
+        border-radius: inherit;
+        background: var(--blue);
+      }
+
+      .overview-stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .overview-stat {
+        min-width: 0;
+        padding-top: 10px;
+        border-top: 1px solid var(--line);
+      }
+
+      .overview-stat span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .overview-stat strong {
+        display: block;
+        margin-top: 5px;
+        font-size: 16px;
       }
 
       .metric-card {
@@ -408,6 +478,10 @@
           grid-template-columns: repeat(2, minmax(210px, 1fr));
         }
 
+        .asset-card {
+          grid-column: 1 / -1;
+        }
+
         .dashboard-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
@@ -489,6 +563,10 @@
 
         .asset-card {
           grid-template-columns: 1fr;
+        }
+
+        .overview-stats {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
         .account-summary {
@@ -964,11 +1042,38 @@
         document.getElementById("kpiGrid").innerHTML = `
           <article class="card kpi-card asset-card">
             <div>
+              <div class="overview-header">
+                <p class="overview-label">概览</p>
+                <span class="overview-badge">${completion >= 1 ? "目标已达成" : "年度目标推进中"}</span>
+              </div>
               <p class="kpi-title">当前资产折合人民币</p>
               <p class="kpi-value blue">${assetValue}</p>
               <div class="kpi-meta">
                 <span>年度存款完成率 <strong class="blue">${formatPercent(completion)}</strong></span>
                 <span>较目标 <strong class="${varianceClass}">${formatSigned(current.variance)}</strong></span>
+              </div>
+              <div class="overview-progress" aria-label="年度存款完成率">
+                <div class="overview-progress-track">
+                  <div class="overview-progress-fill" style="width: ${Math.min(completion * 100, 100).toFixed(1)}%"></div>
+                </div>
+              </div>
+              <div class="overview-stats">
+                <div class="overview-stat">
+                  <span>实际存款</span>
+                  <strong class="green">${formatNumber(current.saving)}</strong>
+                </div>
+                <div class="overview-stat">
+                  <span>目标存款</span>
+                  <strong>${formatNumber(current.targetSaving)}</strong>
+                </div>
+                <div class="overview-stat">
+                  <span>收支结余</span>
+                  <strong class="${current.netBalance >= 0 ? "green" : "red"}">${formatSigned(current.netBalance)}</strong>
+                </div>
+                <div class="overview-stat">
+                  <span>距目标</span>
+                  <strong class="${varianceClass}">${formatSigned(current.variance)}</strong>
+                </div>
               </div>
             </div>
             <div class="asset-mini-chart">${sparklineSvg(data.monthly.map((row) => row.saving))}</div>
