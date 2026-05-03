@@ -7,17 +7,18 @@
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
     <style>
       :root {
-        --bg: #f5f8fc;
+        --bg: #f8fafc;
         --card: #ffffff;
-        --text: #07162f;
+        --text: #0f172a;
         --muted: #64748b;
-        --line: #dbe4ef;
-        --blue: #1267ff;
-        --red: #fb1f1f;
-        --green: #0a9634;
-        --purple: #7a22d8;
-        --orange: #f49312;
-        --shadow: 0 8px 24px rgba(20, 38, 66, 0.08);
+        --line: #e2e8f0;
+        --blue: #2563eb;
+        --red: #dc2626;
+        --green: #16a34a;
+        --purple: #7c3aed;
+        --amber: #d97706;
+        --slate: #475569;
+        --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.05);
         --radius: 8px;
       }
 
@@ -35,9 +36,9 @@
       }
 
       .page {
-        width: min(1920px, 100%);
+        width: min(1480px, 100%);
         margin: 0 auto;
-        padding: 20px 34px 26px;
+        padding: 28px 34px 30px;
       }
 
       .topbar {
@@ -45,35 +46,52 @@
         align-items: flex-start;
         justify-content: space-between;
         gap: 18px;
-        margin-bottom: 22px;
+        margin-bottom: 24px;
       }
 
       h1 {
         margin: 0 0 8px;
-        font-size: 30px;
-        line-height: 1.15;
+        font-size: 28px;
+        line-height: 1.16;
         font-weight: 800;
         letter-spacing: 0;
       }
 
       .subtitle {
         margin: 0;
-        color: #0d2142;
-        font-size: 16px;
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .sync-pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 40px;
+        padding: 0 12px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--card);
+        color: var(--muted);
+        font-size: 13px;
       }
 
       .date-filter {
         display: flex;
         align-items: center;
         gap: 12px;
-        min-height: 58px;
-        padding: 0 18px;
+        min-height: 46px;
+        padding: 0 14px;
         border: 1px solid var(--line);
         border-radius: var(--radius);
         background: var(--card);
-        box-shadow: var(--shadow);
-        color: #0d2142;
-        font-size: 16px;
+        color: var(--text);
+        font-size: 14px;
         white-space: nowrap;
       }
 
@@ -84,7 +102,7 @@
         outline: 0;
         appearance: none;
         background: transparent;
-        color: #0d2142;
+        color: var(--text);
         font: inherit;
         text-align: center;
         cursor: pointer;
@@ -93,13 +111,13 @@
       .date-filter svg {
         width: 20px;
         height: 20px;
-        color: #174f9f;
+        color: var(--blue);
       }
 
       .kpi-grid {
         display: grid;
-        grid-template-columns: repeat(5, minmax(190px, 1fr));
-        gap: 28px;
+        grid-template-columns: minmax(320px, 2.1fr) repeat(3, minmax(180px, 1fr));
+        gap: 16px;
         margin-bottom: 22px;
       }
 
@@ -111,51 +129,74 @@
       }
 
       .kpi-card {
+        min-height: 132px;
+        padding: 18px;
+      }
+
+      .asset-card {
         display: grid;
-        grid-template-columns: 76px 1fr;
-        align-items: center;
-        min-height: 162px;
-        padding: 20px 20px 18px;
-      }
-
-      .kpi-icon {
-        display: grid;
-        place-items: center;
-        width: 72px;
-        height: 72px;
-        border-radius: 50%;
-      }
-
-      .kpi-icon svg {
-        width: 34px;
-        height: 34px;
-      }
-
-      .kpi-content {
-        min-width: 0;
+        grid-template-columns: minmax(0, 1fr) 156px;
+        gap: 18px;
+        min-height: 156px;
+        padding: 22px;
       }
 
       .kpi-title {
-        margin: 0 0 6px;
-        font-size: 16px;
-        color: var(--text);
+        margin: 0 0 10px;
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 600;
       }
 
       .kpi-value {
         margin: 0;
-        font-size: 34px;
+        font-size: 30px;
         line-height: 1.1;
         font-weight: 800;
+        letter-spacing: 0;
+      }
+
+      .asset-card .kpi-value {
+        font-size: 42px;
+      }
+
+      .metric-card {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .asset-mini-chart {
+        width: 100%;
+        height: 108px;
+        align-self: end;
+      }
+
+      .asset-mini-chart svg {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+
+      .spark-area {
+        fill: rgba(37, 99, 235, 0.09);
+      }
+
+      .spark-line {
+        fill: none;
+        stroke: var(--blue);
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
       }
 
       .kpi-meta {
-        grid-column: 1 / -1;
         display: flex;
-        justify-content: space-between;
+        flex-wrap: wrap;
         gap: 12px;
-        margin-top: 18px;
-        font-size: 15px;
-        color: var(--text);
+        margin-top: 14px;
+        font-size: 13px;
+        color: var(--muted);
       }
 
       .kpi-meta strong {
@@ -179,81 +220,59 @@
       }
 
       .orange {
-        color: var(--orange);
-      }
-
-      .icon-blue {
-        background: #dce9ff;
-      }
-
-      .icon-red {
-        background: #ffdfe1;
-      }
-
-      .icon-green {
-        background: #d9f3df;
-      }
-
-      .icon-purple {
-        background: #eadbff;
-      }
-
-      .icon-orange {
-        background: #ffe8c6;
+        color: var(--amber);
       }
 
       .dashboard-grid {
         display: grid;
         grid-template-columns: repeat(12, minmax(0, 1fr));
         align-items: start;
-        gap: 22px;
+        gap: 16px;
         margin-bottom: 22px;
       }
 
+      .progress-panel {
+        grid-column: span 8;
+      }
+
+      .accounts {
+        grid-column: span 4;
+      }
+
       .monthly-panel {
-        grid-column: span 5;
+        grid-column: span 6;
       }
 
       .category-panel {
-        grid-column: span 4;
+        grid-column: span 6;
       }
 
       .detail-panel {
-        grid-column: span 5;
-      }
-
-      .balance-panel {
-        grid-column: span 4;
+        grid-column: 1 / -1;
       }
 
       .panel {
         min-height: 0;
-        padding: 18px 20px 18px;
+        padding: 18px 20px;
       }
 
       .panel h2 {
-        margin: 0 0 14px;
-        font-size: 22px;
+        margin: 0 0 12px;
+        font-size: 20px;
         line-height: 1.2;
         font-weight: 800;
       }
 
       .chart {
         width: 100%;
-        height: 260px;
+        height: 280px;
       }
 
       .wide-chart {
-        height: 348px;
-      }
-
-      #monthlyChart {
-        height: 238px;
+        height: 318px;
       }
 
       .accounts {
-        grid-column: span 3;
-        grid-row: span 2;
         padding: 18px 20px;
       }
 
@@ -274,7 +293,7 @@
         padding: 12px;
         border: 1px solid #d9e5f2;
         border-radius: 8px;
-        background: #f7fbff;
+        background: #f8fafc;
       }
 
       .account-pill span {
@@ -324,15 +343,16 @@
         border-collapse: collapse;
         overflow: hidden;
         border-radius: 6px;
-        font-size: 15px;
+        font-size: 14px;
       }
 
       .detail-table th {
-        padding: 9px 12px;
-        background: linear-gradient(180deg, #287fff, #075dee);
-        color: #fff;
+        padding: 10px 12px;
+        background: #f8fafc;
+        color: var(--muted);
         text-align: center;
-        font-weight: 800;
+        font-weight: 700;
+        border-bottom: 1px solid var(--line);
       }
 
       .detail-table th:first-child {
@@ -340,10 +360,10 @@
       }
 
       .detail-table td {
-        padding: 9px 12px;
+        padding: 11px 12px;
         border-bottom: 1px solid var(--line);
         text-align: center;
-        background: rgba(255, 255, 255, 0.78);
+        background: #ffffff;
       }
 
       .detail-table td:first-child {
@@ -351,9 +371,9 @@
       }
 
       .detail-table tfoot td {
-        font-size: 17px;
+        font-size: 16px;
         font-weight: 800;
-        background: #f7fbff;
+        background: #f8fafc;
       }
 
       .note {
@@ -361,13 +381,13 @@
         align-items: center;
         gap: 12px;
         min-height: 66px;
-        margin-top: 24px;
+        margin-top: 18px;
         padding: 0 26px;
         border: 1px solid #b7d6ff;
         border-radius: var(--radius);
-        background: #eef6ff;
-        color: #0d2142;
-        font-size: 16px;
+        background: #ffffff;
+        color: var(--muted);
+        font-size: 14px;
       }
 
       .note svg {
@@ -385,7 +405,7 @@
 
       @media (max-width: 1320px) {
         .kpi-grid {
-          grid-template-columns: repeat(3, minmax(210px, 1fr));
+          grid-template-columns: repeat(2, minmax(210px, 1fr));
         }
 
         .dashboard-grid {
@@ -395,7 +415,7 @@
         .monthly-panel,
         .category-panel,
         .detail-panel,
-        .balance-panel,
+        .progress-panel,
         .accounts {
           grid-column: auto;
           grid-row: auto;
@@ -409,6 +429,12 @@
 
         .topbar {
           flex-direction: column;
+        }
+
+        .top-actions {
+          width: 100%;
+          flex-direction: column;
+          align-items: stretch;
         }
 
         h1 {
@@ -456,9 +482,13 @@
         .monthly-panel,
         .category-panel,
         .detail-panel,
-        .balance-panel,
+        .progress-panel,
         .accounts {
           grid-column: 1;
+        }
+
+        .asset-card {
+          grid-template-columns: 1fr;
         }
 
         .account-summary {
@@ -476,38 +506,36 @@
     <main class="page">
       <header class="topbar">
         <div>
-          <h1>个人财务BI看板</h1>
-          <p class="subtitle">基于 2026 年度数据分析</p>
+          <h1>个人财务看板</h1>
+          <p class="subtitle">资产增长与存款进度</p>
         </div>
-        <label class="date-filter" aria-label="月份筛选">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="4" width="18" height="18" rx="2"></rect>
-            <path d="M16 2v4M8 2v4M3 10h18"></path>
-          </svg>
-          <select id="monthFilter" aria-label="月份筛选">
-            <option value="all">加载中</option>
-          </select>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m6 9 6 6 6-6"></path>
-          </svg>
-        </label>
+        <div class="top-actions">
+          <span class="sync-pill" id="syncStatus">正在同步</span>
+          <label class="date-filter" aria-label="月份筛选">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+              <path d="M16 2v4M8 2v4M3 10h18"></path>
+            </svg>
+            <select id="monthFilter" aria-label="月份筛选">
+              <option value="all">加载中</option>
+            </select>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m6 9 6 6 6-6"></path>
+            </svg>
+          </label>
+        </div>
       </header>
 
       <section class="kpi-grid" id="kpiGrid"></section>
 
       <section class="dashboard-grid">
-        <article class="card panel monthly-panel">
-          <h2>月度收入 vs 支出 vs 存款</h2>
-          <div class="chart" id="monthlyChart"></div>
-        </article>
-
-        <article class="card panel category-panel">
-          <h2>支出分类占比 (合计 <span id="expenseTotal">0</span>)</h2>
-          <div class="chart" id="categoryChart"></div>
+        <article class="card panel progress-panel">
+          <h2>年度存款进度</h2>
+          <div class="chart wide-chart" id="balanceChart"></div>
         </article>
 
         <article class="card accounts">
-          <h2>账户结余概览</h2>
+          <h2>资产账户构成</h2>
           <div class="account-summary" id="accountSummary"></div>
           <table class="account-table">
             <thead>
@@ -519,6 +547,17 @@
             <tbody id="accountsBody"></tbody>
           </table>
         </article>
+
+        <article class="card panel monthly-panel">
+          <h2>收入 / 支出 / 存款趋势</h2>
+          <div class="chart" id="monthlyChart"></div>
+        </article>
+
+        <article class="card panel category-panel">
+          <h2>支出 Top 类目 (合计 <span id="expenseTotal">0</span>)</h2>
+          <div class="chart" id="categoryChart"></div>
+        </article>
+
         <article class="card panel detail-panel">
           <h2>月度明细</h2>
           <div class="detail-table-wrap">
@@ -529,7 +568,7 @@
                   <th>实际收入</th>
                   <th>实际支出</th>
                   <th>实际存款</th>
-                  <th>存款完成率</th>
+                  <th>完成率</th>
                   <th>较目标存款</th>
                 </tr>
               </thead>
@@ -537,11 +576,6 @@
               <tfoot id="detailFoot"></tfoot>
             </table>
           </div>
-        </article>
-
-        <article class="card panel balance-panel">
-          <h2>净结余趋势</h2>
-          <div class="chart wide-chart" id="balanceChart"></div>
         </article>
       </section>
 
@@ -591,11 +625,12 @@
       ];
 
       const colorMap = {
-        income: "#1267ff",
-        expense: "#fb1f1f",
-        saving: "#0a9634",
-        purple: "#7a22d8",
-        orange: "#f49312",
+        income: "#2563eb",
+        expense: "#dc2626",
+        saving: "#16a34a",
+        target: "#94a3b8",
+        neutral: "#64748b",
+        amber: "#d97706",
       };
 
       const charts = {};
@@ -610,14 +645,21 @@
           const [rows, rates] = await Promise.all([fetchCsvRows(CSV_URL), fetchExchangeRates()]);
           exchangeRates = rates;
           const data = parseDashboardData(rows);
+          setSyncStatus("已同步 · 刚刚");
           renderDashboard(data);
         } catch (error) {
           document.body.insertAdjacentHTML(
             "afterbegin",
             `<div class="state">实时数据读取失败，当前显示内置快照：${error.message}</div>`,
           );
+          setSyncStatus("内置快照");
           renderDashboard(parseDashboardData(parseCsv(DEFAULT_CSV)));
         }
+      }
+
+      function setSyncStatus(text) {
+        const element = document.getElementById("syncStatus");
+        if (element) element.textContent = text;
       }
 
       async function fetchCsvRows(url) {
@@ -892,66 +934,59 @@
 
       function renderKpis(data) {
         const current = data.latestActual || data.monthly[0] || {};
+        const completion = rate(current.saving, current.targetSaving);
+        const rmbTotal = calculateRmbTotal(data.accounts);
+        const assetValue = rmbTotal === null ? formatNumber(current.saving) : `¥${formatNumber(rmbTotal)}`;
+        const varianceClass = current.variance >= 0 ? "green" : "red";
         const cards = [
           {
-            title: "实际收入",
-            value: current.income,
-            metaLeft: `目标：${formatNumber(current.targetIncome)}`,
-            metaRight: `完成率：${formatPercent(rate(current.income, current.targetIncome))}`,
-            color: "blue",
-            icon: walletIcon(),
-          },
-          {
-            title: "实际支出",
-            value: current.expense,
-            metaLeft: `目标：${formatNumber(current.targetExpense)}`,
-            metaRight: `预算使用率：${formatPercent(rate(current.expense, current.targetExpense))}`,
-            color: "red",
-            icon: downIcon(),
+            title: "年度存款完成率",
+            value: formatPercent(completion),
+            meta: `目标 100% · ${completion >= 1 ? "已达标" : "推进中"}`,
+            color: completion >= 1 ? "green" : "blue",
+            raw: true,
           },
           {
             title: "实际存款",
             value: current.saving,
-            metaLeft: `目标：${formatNumber(current.targetSaving)}`,
-            metaRight: `完成率：${formatPercent(rate(current.saving, current.targetSaving))}`,
+            meta: `目标 ${formatNumber(current.targetSaving)}`,
             color: "green",
-            icon: pigIcon(),
           },
           {
-            title: "存款完成率",
-            value: formatPercent(rate(current.saving, current.targetSaving)),
-            metaLeft: "目标：100%",
-            metaRight: `超额完成：${formatPercent(Math.max(rate(current.saving, current.targetSaving) - 1, 0))}`,
-            color: "purple",
-            icon: trendIcon(),
+            title: "较目标存款",
+            value: formatSigned(current.variance),
+            meta: "实际存款 - 目标存款",
+            color: varianceClass,
             raw: true,
-          },
-          {
-            title: "收支结余",
-            value: current.netBalance,
-            metaLeft: `收入 - 支出`,
-            metaRight: `较目标存款：${formatSigned(current.variance)}`,
-            color: "orange",
-            icon: yenIcon(),
           },
         ];
 
-        document.getElementById("kpiGrid").innerHTML = cards
-          .map(
-            (card) => `
-              <article class="card kpi-card">
-                <div class="kpi-icon icon-${card.color} ${card.color}">${card.icon}</div>
-                <div class="kpi-content">
-                  <p class="kpi-title">${card.title}</p>
-                  <p class="kpi-value ${card.color}">${card.raw ? card.value : formatNumber(card.value)}</p>
-                </div>
-                <div class="kpi-meta">
-                  <span>${card.metaLeft}</span>
-                  <span>${card.metaRight.replace(/(：)(.*)/, `$1<strong class="${card.color}">$2</strong>`)}</span>
-                </div>
-              </article>`,
-          )
-          .join("");
+        document.getElementById("kpiGrid").innerHTML = `
+          <article class="card kpi-card asset-card">
+            <div>
+              <p class="kpi-title">当前资产折合人民币</p>
+              <p class="kpi-value blue">${assetValue}</p>
+              <div class="kpi-meta">
+                <span>年度存款完成率 <strong class="blue">${formatPercent(completion)}</strong></span>
+                <span>较目标 <strong class="${varianceClass}">${formatSigned(current.variance)}</strong></span>
+              </div>
+            </div>
+            <div class="asset-mini-chart">${sparklineSvg(data.monthly.map((row) => row.saving))}</div>
+          </article>
+          ${cards
+            .map(
+              (card) => `
+                <article class="card kpi-card metric-card">
+                  <div>
+                    <p class="kpi-title">${card.title}</p>
+                    <p class="kpi-value ${card.color}">${card.raw ? card.value : formatNumber(card.value)}</p>
+                  </div>
+                  <div class="kpi-meta">
+                    <span>${card.meta}</span>
+                  </div>
+                </article>`,
+            )
+            .join("")}`;
       }
 
       function renderMonthlyChart(monthly) {
@@ -961,31 +996,39 @@
           color: [colorMap.income, colorMap.expense, colorMap.saving],
           tooltip: { trigger: "axis" },
           legend: { top: 4, data: ["实际收入", "实际支出", "实际存款"] },
-          grid: { left: compact ? 48 : 50, right: 16, top: 58, bottom: compact ? 46 : 36 },
+          grid: { left: compact ? 48 : 54, right: 18, top: 58, bottom: compact ? 46 : 34 },
           xAxis: {
             type: "category",
             data: monthly.map((row) => row.month),
             axisTick: { show: false },
             axisLabel: { interval: compact ? "auto" : 0 },
           },
-          yAxis: { type: "value", splitLine: { lineStyle: { color: "#dfe7f0" } } },
+          yAxis: { type: "value", splitLine: { lineStyle: { color: "#edf2f7" } } },
           series: [
-            lineSeries("实际收入", monthly.map((row) => row.income), colorMap.income, compact, "top", [0, -8]),
-            lineSeries("实际支出", monthly.map((row) => row.expense), colorMap.expense, compact, "top", [0, 0]),
-            lineSeries("实际存款", monthly.map((row) => row.saving), colorMap.saving, compact, "bottom", [0, 10]),
+            lineSeries("实际收入", monthly.map((row) => row.income), colorMap.income),
+            lineSeries("实际支出", monthly.map((row) => row.expense), colorMap.expense),
+            lineSeries("实际存款", monthly.map((row) => row.saving), colorMap.saving),
           ],
         });
       }
 
       function renderCategoryChart(categories) {
+        const ranked = [...categories].sort((a, b) => b.value - a.value).slice(0, 6);
         const total = categories.reduce((amount, item) => amount + item.value, 0);
         document.getElementById("expenseTotal").textContent = formatNumber(total);
         const chart = getChart("categoryChart");
-        const narrow = chart.getWidth() < 520;
         chart.setOption({
-          color: ["#347df6", "#ff3030", "#ff9d00", "#12a347", "#7c24d8", "#1d9bf0", "#66a7ff"],
-          tooltip: { trigger: "item", formatter: "{b}: {c} ({d}%)" },
-          graphic: categories.length
+          color: [colorMap.blue || colorMap.income],
+          tooltip: {
+            trigger: "axis",
+            axisPointer: { type: "shadow" },
+            formatter(items) {
+              const item = items[0];
+              const percent = total ? ((item.value / total) * 100).toFixed(1) : "0.0";
+              return `${item.name}<br/>${formatNumber(item.value)} (${percent}%)`;
+            },
+          },
+          graphic: ranked.length
             ? []
             : [
                 {
@@ -995,28 +1038,31 @@
                   style: { text: "暂无数据", fill: "#64748b", fontSize: 16, fontWeight: 600 },
                 },
               ],
-          legend: {
-            show: categories.length > 0,
-            type: narrow ? "scroll" : "plain",
-            orient: narrow ? "horizontal" : "vertical",
-            left: narrow ? 0 : null,
-            right: narrow ? 0 : 0,
-            top: narrow ? null : "middle",
-            bottom: narrow ? 0 : null,
-            itemGap: narrow ? 10 : 13,
-            formatter(name) {
-              const item = categories.find((row) => row.name === name);
-              const percent = total ? ((item.value / total) * 100).toFixed(1) : "0.0";
-              return `${name}   ${formatNumber(item.value)} (${percent}%)`;
-            },
+          grid: { left: 94, right: 42, top: 16, bottom: 24 },
+          xAxis: {
+            type: "value",
+            axisLabel: { color: "#64748b" },
+            splitLine: { lineStyle: { color: "#edf2f7" } },
+          },
+          yAxis: {
+            type: "category",
+            inverse: true,
+            data: ranked.map((item) => item.name),
+            axisTick: { show: false },
+            axisLabel: { color: "#0f172a" },
           },
           series: [
             {
-              type: "pie",
-              radius: narrow ? ["36%", "62%"] : ["36%", "68%"],
-              center: narrow ? ["50%", "43%"] : ["35%", "50%"],
-              data: categories,
-              label: { formatter: "{d}%", fontWeight: 800 },
+              type: "bar",
+              barWidth: 16,
+              itemStyle: { borderRadius: [0, 4, 4, 0], color: colorMap.income },
+              label: {
+                show: true,
+                position: "right",
+                color: "#64748b",
+                formatter: ({ value }) => formatNumber(value),
+              },
+              data: ranked.map((item) => item.value),
             },
           ],
         });
@@ -1083,50 +1129,49 @@
       function renderBalanceChart(monthly) {
         const chart = getChart("balanceChart");
         const compact = isCompact();
-        let cumulative = 0;
-        const net = monthly.map((row) => row.netBalance);
-        const cumulativeData = net.map((value) => {
-          cumulative += value;
-          return cumulative;
+        let cumulativeSaving = 0;
+        let cumulativeTarget = 0;
+        const cumulativeData = monthly.map((row) => {
+          cumulativeSaving += row.saving;
+          return cumulativeSaving;
+        });
+        const targetData = monthly.map((row) => {
+          cumulativeTarget += row.targetSaving;
+          return cumulativeTarget;
         });
 
         chart.setOption({
-          color: ["#6cc16f", colorMap.income],
+          color: [colorMap.saving, colorMap.income, colorMap.target],
           tooltip: { trigger: "axis" },
-          legend: { top: 4, data: ["净结余", "累计净结余"] },
-          grid: { left: compact ? 48 : 54, right: compact ? 16 : 58, top: 62, bottom: compact ? 46 : 38 },
+          legend: { top: 4, data: ["实际存款", "累计存款", "目标进度"] },
+          grid: { left: compact ? 48 : 54, right: compact ? 16 : 34, top: 62, bottom: compact ? 46 : 36 },
           xAxis: {
             type: "category",
             data: monthly.map((row) => row.month),
             axisTick: { show: false },
             axisLabel: { interval: compact ? "auto" : 0 },
           },
-          yAxis: [
-            { type: "value", splitLine: { lineStyle: { color: "#dfe7f0" } } },
-            { type: "value", splitLine: { show: false } },
-          ],
+          yAxis: { type: "value", splitLine: { lineStyle: { color: "#edf2f7" } } },
           series: [
             {
-              name: "净结余",
+              name: "实际存款",
               type: "bar",
-              barWidth: 36,
-              itemStyle: { color: "#6cc16f" },
+              barWidth: compact ? 16 : 24,
+              itemStyle: { color: colorMap.saving, borderRadius: [4, 4, 0, 0] },
               label: {
                 show: !compact,
-                position: "insideTop",
-                distance: 8,
+                position: "top",
                 formatter: ({ value }) => formatNumber(value),
-                color: "#ffffff",
+                color: colorMap.saving,
                 fontWeight: 800,
               },
-              data: net,
+              data: monthly.map((row) => row.saving),
             },
             {
-              name: "累计净结余",
+              name: "累计存款",
               type: "line",
-              yAxisIndex: 1,
               symbolSize: 8,
-              lineStyle: { width: 3 },
+              lineStyle: { width: 3, color: colorMap.income },
               label: {
                 show: !compact,
                 position: "top",
@@ -1136,11 +1181,18 @@
               },
               data: cumulativeData,
             },
+            {
+              name: "目标进度",
+              type: "line",
+              symbol: "none",
+              lineStyle: { width: 2, type: "dashed", color: colorMap.target },
+              data: targetData,
+            },
           ],
         });
       }
 
-      function lineSeries(name, data, color, compact, position, offset) {
+      function lineSeries(name, data, color) {
         return {
           name,
           type: "line",
@@ -1148,9 +1200,7 @@
           lineStyle: { width: 3 },
           labelLayout: { hideOverlap: true },
           label: {
-            show: true,
-            position,
-            offset,
+            show: false,
             color,
             fontWeight: 800,
             backgroundColor: "rgba(255,255,255,0.86)",
@@ -1160,6 +1210,28 @@
           },
           data,
         };
+      }
+
+      function sparklineSvg(values) {
+        const data = values.length ? values : [0];
+        const width = 156;
+        const height = 96;
+        const padding = 8;
+        const max = Math.max(...data, 1);
+        const min = Math.min(...data, 0);
+        const range = Math.max(max - min, 1);
+        const points = data.map((value, index) => {
+          const x = padding + (index / Math.max(data.length - 1, 1)) * (width - padding * 2);
+          const y = height - padding - ((value - min) / range) * (height - padding * 2);
+          return [x, y];
+        });
+        const line = points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+        const area = `${padding},${height - padding} ${line} ${width - padding},${height - padding}`;
+        return `
+          <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="存款趋势">
+            <polyline class="spark-area" points="${area}"></polyline>
+            <polyline class="spark-line" points="${line}"></polyline>
+          </svg>`;
       }
 
       function getChart(id) {
