@@ -515,7 +515,7 @@
           <circle cx="12" cy="12" r="10"></circle>
           <path d="M12 16v-4M12 8h.01"></path>
         </svg>
-        <span>小贴士：存款完成率 = 实际存款 ÷ 目标存款；收支结余 = 实际收入 - 实际支出；较目标存款 = 收支结余 - 目标存款</span>
+        <span>小贴士：存款完成率 = 实际存款 ÷ 目标存款；收支结余 = 实际收入 - 实际支出；较目标存款 = 实际存款 - 目标存款</span>
       </footer>
     </main>
 
@@ -684,6 +684,7 @@
           const income = toNumber(row[4]);
           const expense = toNumber(row[5]);
           const targetSaving = toNumber(row[3]);
+          const saving = toNumber(row[6]);
           const netBalance = income - expense;
           const entry = {
             month,
@@ -692,10 +693,10 @@
             targetSaving,
             income,
             expense,
-            saving: toNumber(row[6]),
+            saving,
             savingRate: toRate(row[7]),
             netBalance,
-            variance: netBalance - targetSaving,
+            variance: saving - targetSaving,
           };
 
           const currency = {
