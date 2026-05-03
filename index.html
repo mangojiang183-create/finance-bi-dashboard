@@ -202,19 +202,28 @@
         background: #ffe8c6;
       }
 
-      .layout {
+      .dashboard-grid {
         display: grid;
-        grid-template-columns: minmax(0, 1.46fr) minmax(360px, 0.96fr) minmax(260px, 0.6fr);
+        grid-template-columns: repeat(12, minmax(0, 1fr));
         align-items: start;
         gap: 22px;
         margin-bottom: 22px;
       }
 
-      .lower {
-        display: grid;
-        grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
-        align-items: start;
-        gap: 22px;
+      .monthly-panel {
+        grid-column: span 5;
+      }
+
+      .category-panel {
+        grid-column: span 4;
+      }
+
+      .detail-panel {
+        grid-column: span 5;
+      }
+
+      .balance-panel {
+        grid-column: span 4;
       }
 
       .panel {
@@ -243,6 +252,8 @@
       }
 
       .accounts {
+        grid-column: span 3;
+        grid-row: span 2;
         padding: 18px 20px;
       }
 
@@ -254,7 +265,7 @@
 
       .account-summary {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
         margin: 4px 0 16px;
       }
@@ -377,9 +388,17 @@
           grid-template-columns: repeat(3, minmax(210px, 1fr));
         }
 
-        .layout,
-        .lower {
-          grid-template-columns: 1fr;
+        .dashboard-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .monthly-panel,
+        .category-panel,
+        .detail-panel,
+        .balance-panel,
+        .accounts {
+          grid-column: auto;
+          grid-row: auto;
         }
       }
 
@@ -430,6 +449,18 @@
           height: 310px;
         }
 
+        .dashboard-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .monthly-panel,
+        .category-panel,
+        .detail-panel,
+        .balance-panel,
+        .accounts {
+          grid-column: 1;
+        }
+
         .account-summary {
           grid-template-columns: 1fr;
         }
@@ -464,14 +495,14 @@
 
       <section class="kpi-grid" id="kpiGrid"></section>
 
-      <section class="layout">
-        <article class="card panel">
-          <h2>月度收入 vs 支出 vs 存款 (W)</h2>
+      <section class="dashboard-grid">
+        <article class="card panel monthly-panel">
+          <h2>月度收入 vs 支出 vs 存款</h2>
           <div class="chart" id="monthlyChart"></div>
         </article>
 
-        <article class="card panel">
-          <h2>支出分类占比 (合计 <span id="expenseTotal">0</span> W)</h2>
+        <article class="card panel category-panel">
+          <h2>支出分类占比 (合计 <span id="expenseTotal">0</span>)</h2>
           <div class="chart" id="categoryChart"></div>
         </article>
 
@@ -488,11 +519,8 @@
             <tbody id="accountsBody"></tbody>
           </table>
         </article>
-      </section>
-
-      <section class="lower">
-        <article class="card panel">
-          <h2>月度明细 (W)</h2>
+        <article class="card panel detail-panel">
+          <h2>月度明细</h2>
           <div class="detail-table-wrap">
             <table class="detail-table">
               <thead>
@@ -511,8 +539,8 @@
           </div>
         </article>
 
-        <article class="card panel">
-          <h2>净结余趋势 (W)</h2>
+        <article class="card panel balance-panel">
+          <h2>净结余趋势</h2>
           <div class="chart wide-chart" id="balanceChart"></div>
         </article>
       </section>
@@ -533,7 +561,7 @@
         "https://docs.google.com/spreadsheets/d/1TzNIHcOvIC4uhMi2rqJ9xP1kRFco7c4OKhxE5Woylro/gviz/tq?tqx=out:csv&gid=504817751";
       const DIRECT_EXCHANGE_RATE_URL = "https://open.er-api.com/v6/latest/USD";
 
-      const DEFAULT_CSV = `月份,目标收入,目标支出,目标存款,实际收入,实际支出,实际存款,存款完成率,偏差,,月份,越南盾 兑换（W）,支出（W）,结余（越南盾 单位万）,结余（usdt 单位U）,结余（visa 单位美元）
+      const DEFAULT_CSV = `月份,目标收入,目标支出,目标存款,实际收入,实际支出,实际存款,存款完成率,偏差,,月份,越南盾兑换,支出,结余（越南盾 单位万）,结余（usdt 单位U）,结余（visa 单位美元）
 2026-04,5305,2500,2805,5525,2673,5352,190.80%,2547,,2026-04,2600,1990,610,5439,260
 2026-05,4755,2500,2255,,,0,0.00%,-2255,,2026-05,,,0
 2026-06,4695,2500,2195,,,0,0.00%,-2195,,2026-06,,,0
@@ -866,7 +894,7 @@
         const current = data.latestActual || data.monthly[0] || {};
         const cards = [
           {
-            title: "实际收入 (W)",
+            title: "实际收入",
             value: current.income,
             metaLeft: `目标：${formatNumber(current.targetIncome)}`,
             metaRight: `完成率：${formatPercent(rate(current.income, current.targetIncome))}`,
@@ -874,7 +902,7 @@
             icon: walletIcon(),
           },
           {
-            title: "实际支出 (W)",
+            title: "实际支出",
             value: current.expense,
             metaLeft: `目标：${formatNumber(current.targetExpense)}`,
             metaRight: `预算使用率：${formatPercent(rate(current.expense, current.targetExpense))}`,
@@ -882,7 +910,7 @@
             icon: downIcon(),
           },
           {
-            title: "实际存款 (W)",
+            title: "实际存款",
             value: current.saving,
             metaLeft: `目标：${formatNumber(current.targetSaving)}`,
             metaRight: `完成率：${formatPercent(rate(current.saving, current.targetSaving))}`,
@@ -899,7 +927,7 @@
             raw: true,
           },
           {
-            title: "收支结余 (W)",
+            title: "收支结余",
             value: current.netBalance,
             metaLeft: `收入 - 支出`,
             metaRight: `较目标存款：${formatSigned(current.variance)}`,
@@ -1065,7 +1093,7 @@
         chart.setOption({
           color: ["#6cc16f", colorMap.income],
           tooltip: { trigger: "axis" },
-          legend: { top: 4, data: ["净结余（W）", "累计净结余（W）"] },
+          legend: { top: 4, data: ["净结余", "累计净结余"] },
           grid: { left: compact ? 48 : 54, right: compact ? 16 : 58, top: 62, bottom: compact ? 46 : 38 },
           xAxis: {
             type: "category",
@@ -1079,7 +1107,7 @@
           ],
           series: [
             {
-              name: "净结余（W）",
+              name: "净结余",
               type: "bar",
               barWidth: 36,
               itemStyle: { color: "#6cc16f" },
@@ -1094,7 +1122,7 @@
               data: net,
             },
             {
-              name: "累计净结余（W）",
+              name: "累计净结余",
               type: "line",
               yAxisIndex: 1,
               symbolSize: 8,
