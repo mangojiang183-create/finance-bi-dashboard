@@ -205,6 +205,7 @@
       .layout {
         display: grid;
         grid-template-columns: minmax(0, 1.46fr) minmax(360px, 0.96fr) minmax(260px, 0.6fr);
+        align-items: start;
         gap: 22px;
         margin-bottom: 22px;
       }
@@ -212,6 +213,7 @@
       .lower {
         display: grid;
         grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+        align-items: start;
         gap: 22px;
       }
 
@@ -951,6 +953,7 @@
         const total = categories.reduce((amount, item) => amount + item.value, 0);
         document.getElementById("expenseTotal").textContent = formatNumber(total);
         const chart = getChart("categoryChart");
+        const narrow = chart.getWidth() < 520;
         chart.setOption({
           color: ["#347df6", "#ff3030", "#ff9d00", "#12a347", "#7c24d8", "#1d9bf0", "#66a7ff"],
           tooltip: { trigger: "item", formatter: "{b}: {c} ({d}%)" },
@@ -966,10 +969,13 @@
               ],
           legend: {
             show: categories.length > 0,
-            orient: "vertical",
-            right: 0,
-            top: "middle",
-            itemGap: 13,
+            type: narrow ? "scroll" : "plain",
+            orient: narrow ? "horizontal" : "vertical",
+            left: narrow ? 0 : null,
+            right: narrow ? 0 : 0,
+            top: narrow ? null : "middle",
+            bottom: narrow ? 0 : null,
+            itemGap: narrow ? 10 : 13,
             formatter(name) {
               const item = categories.find((row) => row.name === name);
               const percent = total ? ((item.value / total) * 100).toFixed(1) : "0.0";
@@ -979,8 +985,8 @@
           series: [
             {
               type: "pie",
-              radius: ["36%", "68%"],
-              center: ["35%", "50%"],
+              radius: narrow ? ["36%", "62%"] : ["36%", "68%"],
+              center: narrow ? ["50%", "43%"] : ["35%", "50%"],
               data: categories,
               label: { formatter: "{d}%", fontWeight: 800 },
             },
@@ -1050,7 +1056,7 @@
         const chart = getChart("balanceChart");
         const compact = isCompact();
         let cumulative = 0;
-        const net = monthly.map((row) => row.targetSaving + row.variance);
+        const net = monthly.map((row) => row.netBalance);
         const cumulativeData = net.map((value) => {
           cumulative += value;
           return cumulative;
