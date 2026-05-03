@@ -38,10 +38,10 @@ After deployment, Render will provide an HTTPS URL. Visitors will be asked for t
 ```text
 DASHBOARD_USER=your-username
 DASHBOARD_PASSWORD=your-strong-password
-GOOGLE_CSV_URL=https://docs.google.com/spreadsheets/d/e/your-published-sheet-id/pub?output=csv
+GOOGLE_CSV_URL=https://docs.google.com/spreadsheets/d/your-sheet-id/gviz/tq?tqx=out:csv&gid=your-gid
 EXCHANGE_RATE_URL=https://open.er-api.com/v6/latest/USD
 ```
 
 ## Notes
 
-The current Google Sheet is published as CSV. Anyone with that CSV URL can access the raw data. For private source data, replace the published CSV with Google Sheets API access through a service account.
+The dashboard reads Google Sheets through the CSV export endpoint. Anyone with that CSV URL can access the raw data if the sheet is shared publicly. For private source data, replace CSV access with Google Sheets API access through a service account.

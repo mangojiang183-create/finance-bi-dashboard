@@ -523,7 +523,7 @@
       const CSV_URL = "/api/data";
       const EXCHANGE_RATE_URL = "/api/rates";
       const DIRECT_CSV_URL =
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vS99e1OqPU9POBbRrJk868WPW93UGR4AiiXjY4eLDoKeaLOLGlAB2h6Mhu0a_eeK5I2dhBw-h5BOqOo/pub?output=csv";
+        "https://docs.google.com/spreadsheets/d/1TzNIHcOvIC4uhMi2rqJ9xP1kRFco7c4OKhxE5Woylro/gviz/tq?tqx=out:csv&gid=504817751";
       const DIRECT_EXCHANGE_RATE_URL = "https://open.er-api.com/v6/latest/USD";
 
       const DEFAULT_CSV = `月份,目标收入,目标支出,目标存款,实际收入,实际支出,实际存款,存款完成率,偏差,,月份,越南盾 兑换（W）,支出（W）,结余（越南盾 单位万）,结余（usdt 单位U）,结余（visa 单位美元）
@@ -726,8 +726,8 @@
             ? calculatedTotal.saving / calculatedTotal.targetSaving
             : 0;
 
-        const latestActual = monthly.find((row) => row.income || row.expense || row.saving) || monthly[0];
-        const latestCurrency = currencyRows.find(
+        const latestActual = [...monthly].reverse().find((row) => row.income || row.expense || row.saving) || monthly[0];
+        const latestCurrency = [...currencyRows].reverse().find(
           (row) => row.exchange || row.expense || row.vndBalance || row.usdtBalance || row.visaBalance,
         );
         const categories = latestCurrency

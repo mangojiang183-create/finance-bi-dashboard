@@ -12,7 +12,7 @@ const SESSION_COOKIE = "finance_bi_session";
 const SESSION_SECRET = process.env.SESSION_SECRET || DASHBOARD_PASSWORD;
 const GOOGLE_CSV_URL =
   process.env.GOOGLE_CSV_URL ||
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vS99e1OqPU9POBbRrJk868WPW93UGR4AiiXjY4eLDoKeaLOLGlAB2h6Mhu0a_eeK5I2dhBw-h5BOqOo/pub?output=csv";
+  "https://docs.google.com/spreadsheets/d/1TzNIHcOvIC4uhMi2rqJ9xP1kRFco7c4OKhxE5Woylro/gviz/tq?tqx=out:csv&gid=504817751";
 const EXCHANGE_RATE_URL = process.env.EXCHANGE_RATE_URL || "https://open.er-api.com/v6/latest/USD";
 
 const publicFiles = {
