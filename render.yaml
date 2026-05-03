@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: personal-finance-bi-dashboard
+    env: node
+    plan: free
+    buildCommand: ""
+    startCommand: npm start
+    envVars:
+      - key: DASHBOARD_USER
+        sync: false
+      - key: DASHBOARD_PASSWORD
+        sync: false
+      - key: GOOGLE_CSV_URL
+        value: https://docs.google.com/spreadsheets/d/e/2PACX-1vS99e1OqPU9POBbRrJk868WPW93UGR4AiiXjY4eLDoKeaLOLGlAB2h6Mhu0a_eeK5I2dhBw-h5BOqOo/pub?output=csv
+      - key: EXCHANGE_RATE_URL
+        value: https://open.er-api.com/v6/latest/USD

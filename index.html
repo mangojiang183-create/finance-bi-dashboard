@@ -1,0 +1,1191 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>个人财务BI看板</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+    <style>
+      :root {
+        --bg: #f5f8fc;
+        --card: #ffffff;
+        --text: #07162f;
+        --muted: #64748b;
+        --line: #dbe4ef;
+        --blue: #1267ff;
+        --red: #fb1f1f;
+        --green: #0a9634;
+        --purple: #7a22d8;
+        --orange: #f49312;
+        --shadow: 0 8px 24px rgba(20, 38, 66, 0.08);
+        --radius: 8px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        overflow-x: hidden;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      }
+
+      .page {
+        width: min(1920px, 100%);
+        margin: 0 auto;
+        padding: 20px 34px 26px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 22px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 30px;
+        line-height: 1.15;
+        font-weight: 800;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        margin: 0;
+        color: #0d2142;
+        font-size: 16px;
+      }
+
+      .date-filter {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 58px;
+        padding: 0 18px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--card);
+        box-shadow: var(--shadow);
+        color: #0d2142;
+        font-size: 16px;
+        white-space: nowrap;
+      }
+
+      .date-filter select {
+        width: 100%;
+        min-width: 210px;
+        border: 0;
+        outline: 0;
+        appearance: none;
+        background: transparent;
+        color: #0d2142;
+        font: inherit;
+        text-align: center;
+        cursor: pointer;
+      }
+
+      .date-filter svg {
+        width: 20px;
+        height: 20px;
+        color: #174f9f;
+      }
+
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(190px, 1fr));
+        gap: 28px;
+        margin-bottom: 22px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--card);
+        box-shadow: var(--shadow);
+      }
+
+      .kpi-card {
+        display: grid;
+        grid-template-columns: 76px 1fr;
+        align-items: center;
+        min-height: 162px;
+        padding: 20px 20px 18px;
+      }
+
+      .kpi-icon {
+        display: grid;
+        place-items: center;
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+      }
+
+      .kpi-icon svg {
+        width: 34px;
+        height: 34px;
+      }
+
+      .kpi-content {
+        min-width: 0;
+      }
+
+      .kpi-title {
+        margin: 0 0 6px;
+        font-size: 16px;
+        color: var(--text);
+      }
+
+      .kpi-value {
+        margin: 0;
+        font-size: 34px;
+        line-height: 1.1;
+        font-weight: 800;
+      }
+
+      .kpi-meta {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 18px;
+        font-size: 15px;
+        color: var(--text);
+      }
+
+      .kpi-meta strong {
+        font-weight: 800;
+      }
+
+      .blue {
+        color: var(--blue);
+      }
+
+      .red {
+        color: var(--red);
+      }
+
+      .green {
+        color: var(--green);
+      }
+
+      .purple {
+        color: var(--purple);
+      }
+
+      .orange {
+        color: var(--orange);
+      }
+
+      .icon-blue {
+        background: #dce9ff;
+      }
+
+      .icon-red {
+        background: #ffdfe1;
+      }
+
+      .icon-green {
+        background: #d9f3df;
+      }
+
+      .icon-purple {
+        background: #eadbff;
+      }
+
+      .icon-orange {
+        background: #ffe8c6;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.46fr) minmax(360px, 0.96fr) minmax(260px, 0.6fr);
+        gap: 22px;
+        margin-bottom: 22px;
+      }
+
+      .lower {
+        display: grid;
+        grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+        gap: 22px;
+      }
+
+      .panel {
+        min-height: 360px;
+        padding: 18px 20px 18px;
+      }
+
+      .panel h2 {
+        margin: 0 0 14px;
+        font-size: 22px;
+        line-height: 1.2;
+        font-weight: 800;
+      }
+
+      .chart {
+        width: 100%;
+        height: 292px;
+      }
+
+      .wide-chart {
+        height: 348px;
+      }
+
+      .accounts {
+        padding: 18px 20px;
+      }
+
+      .account-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 15px;
+      }
+
+      .account-summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin: 4px 0 16px;
+      }
+
+      .account-pill {
+        padding: 12px;
+        border: 1px solid #d9e5f2;
+        border-radius: 8px;
+        background: #f7fbff;
+      }
+
+      .account-pill span {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .account-pill strong {
+        display: block;
+        margin-top: 5px;
+        color: var(--blue);
+        font-size: 18px;
+      }
+
+      .account-table th,
+      .account-table td {
+        padding: 14px 0;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+      }
+
+      .account-table th {
+        color: #64748b;
+        font-weight: 500;
+      }
+
+      .account-table td:last-child,
+      .account-table th:last-child {
+        text-align: right;
+      }
+
+      .account-total td {
+        border-bottom: 0;
+        color: var(--blue);
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      .detail-table-wrap {
+        overflow: auto;
+      }
+
+      .detail-table {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: collapse;
+        overflow: hidden;
+        border-radius: 6px;
+        font-size: 15px;
+      }
+
+      .detail-table th {
+        padding: 9px 12px;
+        background: linear-gradient(180deg, #287fff, #075dee);
+        color: #fff;
+        text-align: center;
+        font-weight: 800;
+      }
+
+      .detail-table th:first-child {
+        text-align: left;
+      }
+
+      .detail-table td {
+        padding: 9px 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: center;
+        background: rgba(255, 255, 255, 0.78);
+      }
+
+      .detail-table td:first-child {
+        text-align: left;
+      }
+
+      .detail-table tfoot td {
+        font-size: 17px;
+        font-weight: 800;
+        background: #f7fbff;
+      }
+
+      .note {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 66px;
+        margin-top: 24px;
+        padding: 0 26px;
+        border: 1px solid #b7d6ff;
+        border-radius: var(--radius);
+        background: #eef6ff;
+        color: #0d2142;
+        font-size: 16px;
+      }
+
+      .note svg {
+        width: 23px;
+        height: 23px;
+        color: var(--blue);
+        flex: 0 0 auto;
+      }
+
+      .state {
+        padding: 26px;
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      @media (max-width: 1320px) {
+        .kpi-grid {
+          grid-template-columns: repeat(3, minmax(210px, 1fr));
+        }
+
+        .layout,
+        .lower {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .page {
+          padding: 16px;
+        }
+
+        .topbar {
+          flex-direction: column;
+        }
+
+        h1 {
+          font-size: 26px;
+        }
+
+        .date-filter {
+          width: 100%;
+          justify-content: space-between;
+          white-space: normal;
+        }
+
+        .date-filter select {
+          min-width: 0;
+        }
+
+        .kpi-grid {
+          grid-template-columns: 1fr;
+          gap: 14px;
+        }
+
+        .kpi-card {
+          min-height: 132px;
+        }
+
+        .panel {
+          padding: 16px 12px;
+        }
+
+        .panel h2 {
+          font-size: 19px;
+          padding: 0 4px;
+        }
+
+        .chart,
+        .wide-chart {
+          height: 310px;
+        }
+
+        .account-summary {
+          grid-template-columns: 1fr;
+        }
+
+        .note {
+          align-items: flex-start;
+          padding: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="topbar">
+        <div>
+          <h1>个人财务BI看板</h1>
+          <p class="subtitle">基于 2026 年度数据分析</p>
+        </div>
+        <label class="date-filter" aria-label="月份筛选">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+            <path d="M16 2v4M8 2v4M3 10h18"></path>
+          </svg>
+          <select id="monthFilter" aria-label="月份筛选">
+            <option value="all">加载中</option>
+          </select>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m6 9 6 6 6-6"></path>
+          </svg>
+        </label>
+      </header>
+
+      <section class="kpi-grid" id="kpiGrid"></section>
+
+      <section class="layout">
+        <article class="card panel">
+          <h2>月度收入 vs 支出 vs 存款 (W)</h2>
+          <div class="chart" id="monthlyChart"></div>
+        </article>
+
+        <article class="card panel">
+          <h2>支出分类占比 (合计 <span id="expenseTotal">0</span> W)</h2>
+          <div class="chart" id="categoryChart"></div>
+        </article>
+
+        <article class="card accounts">
+          <h2>账户结余概览</h2>
+          <div class="account-summary" id="accountSummary"></div>
+          <table class="account-table">
+            <thead>
+              <tr>
+                <th>账户</th>
+                <th>结余</th>
+              </tr>
+            </thead>
+            <tbody id="accountsBody"></tbody>
+          </table>
+        </article>
+      </section>
+
+      <section class="lower">
+        <article class="card panel">
+          <h2>月度明细 (W)</h2>
+          <div class="detail-table-wrap">
+            <table class="detail-table">
+              <thead>
+                <tr>
+                  <th>月份</th>
+                  <th>实际收入</th>
+                  <th>实际支出</th>
+                  <th>实际存款</th>
+                  <th>存款完成率</th>
+                  <th>较目标存款</th>
+                </tr>
+              </thead>
+              <tbody id="detailBody"></tbody>
+              <tfoot id="detailFoot"></tfoot>
+            </table>
+          </div>
+        </article>
+
+        <article class="card panel">
+          <h2>净结余趋势 (W)</h2>
+          <div class="chart wide-chart" id="balanceChart"></div>
+        </article>
+      </section>
+
+      <footer class="note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 16v-4M12 8h.01"></path>
+        </svg>
+        <span>小贴士：存款完成率 = 实际存款 ÷ 目标存款；收支结余 = 实际收入 - 实际支出；较目标存款 = 收支结余 - 目标存款</span>
+      </footer>
+    </main>
+
+    <script>
+      const CSV_URL = "/api/data";
+      const EXCHANGE_RATE_URL = "/api/rates";
+
+      const DEFAULT_CSV = `月份,目标收入,目标支出,目标存款,实际收入,实际支出,实际存款,存款完成率,偏差,,月份,越南盾 兑换（W）,支出（W）,结余（越南盾 单位万）,结余（usdt 单位U）,结余（visa 单位美元）
+2026-04,5305,2500,2805,5525,2673,5352,190.80%,2547,,2026-04,2600,1990,610,5439,260
+2026-05,4755,2500,2255,,,0,0.00%,-2255,,2026-05,,,0
+2026-06,4695,2500,2195,,,0,0.00%,-2195,,2026-06,,,0
+2026-07,4635,2500,2135,,,0,0.00%,-2135,,2026-07,,,0
+2026-08,4575,2500,2075,,,0,0.00%,-2075,,2026-08,,,0
+2026-09,4515,2500,2015,,,0,0.00%,-2015,,2026-09,,,0
+2026-10,4455,2500,1955,,,0,0.00%,-1955,,2026-10,,,0
+2026-11,4395,2500,1895,,,0,0.00%,-1895,,2026-11,,,0
+2026-12,4335,2500,1835,,,0,0.00%,-1835,,2026-12,,,0
+合计,41665,22500,19165,5525,2673,5352,27.93%,-13813,,合计,2600,1990,610,5439,260`;
+
+      const FALLBACK_CATEGORIES = [
+        { name: "越南盾兑换", value: 1520 },
+        { name: "房租", value: 500 },
+        { name: "餐饮", value: 200 },
+        { name: "交通", value: 140 },
+        { name: "订阅/软件", value: 80 },
+        { name: "购物", value: 60 },
+        { name: "娱乐", value: 40 },
+      ];
+
+      const FALLBACK_ACCOUNTS = [
+        { name: "越南盾", value: 1030 },
+        { name: "现金", value: 0 },
+        { name: "银行卡", value: 0 },
+        { name: "Visa", value: 0 },
+      ];
+
+      const colorMap = {
+        income: "#1267ff",
+        expense: "#fb1f1f",
+        saving: "#0a9634",
+        purple: "#7a22d8",
+        orange: "#f49312",
+      };
+
+      const charts = {};
+      let dashboardData = null;
+      let selectedMonth = "all";
+      let exchangeRates = null;
+
+      init();
+
+      async function init() {
+        try {
+          const [rows, rates] = await Promise.all([fetchCsvRows(CSV_URL), fetchExchangeRates()]);
+          exchangeRates = rates;
+          const data = parseDashboardData(rows);
+          renderDashboard(data);
+        } catch (error) {
+          document.body.insertAdjacentHTML(
+            "afterbegin",
+            `<div class="state">实时数据读取失败，当前显示内置快照：${error.message}</div>`,
+          );
+          renderDashboard(parseDashboardData(parseCsv(DEFAULT_CSV)));
+        }
+      }
+
+      async function fetchCsvRows(url) {
+        const response = await fetch(`${url}&cacheBust=${Date.now()}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const text = await response.text();
+        return parseCsv(text);
+      }
+
+      async function fetchExchangeRates() {
+        try {
+          const response = await fetch(`${EXCHANGE_RATE_URL}?cacheBust=${Date.now()}`);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          if (data.result !== "success" || !data.rates?.CNY || !data.rates?.VND) {
+            throw new Error("rates missing");
+          }
+          return {
+            cnyPerUsd: data.rates.CNY,
+            vndPerUsd: data.rates.VND,
+            updatedAt: data.time_last_update_utc,
+          };
+        } catch (error) {
+          console.warn("Exchange rate fetch failed", error);
+          return null;
+        }
+      }
+
+      function parseCsv(text) {
+        const rows = [];
+        let row = [];
+        let cell = "";
+        let quoted = false;
+
+        for (let index = 0; index < text.length; index += 1) {
+          const char = text[index];
+          const next = text[index + 1];
+
+          if (char === '"' && quoted && next === '"') {
+            cell += '"';
+            index += 1;
+          } else if (char === '"') {
+            quoted = !quoted;
+          } else if (char === "," && !quoted) {
+            row.push(cell);
+            cell = "";
+          } else if ((char === "\n" || char === "\r") && !quoted) {
+            if (char === "\r" && next === "\n") index += 1;
+            row.push(cell);
+            rows.push(row);
+            row = [];
+            cell = "";
+          } else {
+            cell += char;
+          }
+        }
+
+        if (cell || row.length) {
+          row.push(cell);
+          rows.push(row);
+        }
+
+        return rows.filter((item) => item.some((value) => value.trim() !== ""));
+      }
+
+      function parseDashboardData(rows) {
+        const body = rows.slice(1);
+        const monthly = [];
+        const currencyRows = [];
+        let total = null;
+
+        body.forEach((row) => {
+          const month = clean(row[0]);
+          if (!month) return;
+
+          const income = toNumber(row[4]);
+          const expense = toNumber(row[5]);
+          const targetSaving = toNumber(row[3]);
+          const netBalance = income - expense;
+          const entry = {
+            month,
+            targetIncome: toNumber(row[1]),
+            targetExpense: toNumber(row[2]),
+            targetSaving,
+            income,
+            expense,
+            saving: toNumber(row[6]),
+            savingRate: toRate(row[7]),
+            netBalance,
+            variance: netBalance - targetSaving,
+          };
+
+          const currency = {
+            month: clean(row[10]),
+            exchange: toNumber(row[11]),
+            expense: toNumber(row[12]),
+            vndBalance: toNumber(row[13]),
+            usdtBalance: toNumber(row[14]),
+            visaBalance: toNumber(row[15]),
+          };
+
+          if (month === "合计") {
+            total = entry;
+          } else {
+            monthly.push(entry);
+          }
+
+          if (currency.month && currency.month !== "合计") {
+            currencyRows.push(currency);
+          }
+        });
+
+        const calculatedTotal = total || {
+          ...buildTotal(monthly),
+        };
+        calculatedTotal.savingRate =
+          calculatedTotal.targetSaving > 0
+            ? calculatedTotal.saving / calculatedTotal.targetSaving
+            : 0;
+
+        const latestActual = monthly.find((row) => row.income || row.expense || row.saving) || monthly[0];
+        const latestCurrency = currencyRows.find(
+          (row) => row.exchange || row.expense || row.vndBalance || row.usdtBalance || row.visaBalance,
+        );
+        const categories = latestCurrency
+          ? [
+              { name: "越南盾兑换", value: latestCurrency.exchange },
+              { name: "支出", value: latestCurrency.expense },
+              { name: "越南盾结余", value: latestCurrency.vndBalance },
+            ].filter((item) => item.value > 0)
+          : FALLBACK_CATEGORIES;
+
+        const accounts = latestCurrency
+          ? [
+              { name: "越南盾", value: latestCurrency.vndBalance, unit: "万" },
+              { name: "USDT", value: latestCurrency.usdtBalance, unit: "U" },
+              { name: "Visa", value: latestCurrency.visaBalance, unit: "美元" },
+            ]
+          : FALLBACK_ACCOUNTS;
+
+        return {
+          monthly,
+          currencyRows,
+          total: calculatedTotal,
+          latestActual,
+          categories: categories.length ? categories : FALLBACK_CATEGORIES,
+          accounts,
+        };
+      }
+
+      function buildTotal(rows) {
+        const total = {
+          month: "合计",
+          targetIncome: sum(rows, "targetIncome"),
+          targetExpense: sum(rows, "targetExpense"),
+          targetSaving: sum(rows, "targetSaving"),
+          income: sum(rows, "income"),
+          expense: sum(rows, "expense"),
+          saving: sum(rows, "saving"),
+          netBalance: sum(rows, "netBalance"),
+          variance: sum(rows, "variance"),
+        };
+        total.savingRate = total.targetSaving > 0 ? total.saving / total.targetSaving : 0;
+        return total;
+      }
+
+      function buildScopedMoney(data, month) {
+        if (month === "all") {
+          return { categories: data.categories, accounts: data.accounts };
+        }
+
+        const row = data.currencyRows.find((item) => item.month === month);
+        if (!row) {
+          return { categories: FALLBACK_CATEGORIES, accounts: FALLBACK_ACCOUNTS };
+        }
+
+        const categories = [
+          { name: "越南盾兑换", value: row.exchange },
+          { name: "支出", value: row.expense },
+          { name: "越南盾结余", value: row.vndBalance },
+        ].filter((item) => item.value > 0);
+
+        return {
+          categories,
+          accounts: [
+            { name: "越南盾", value: row.vndBalance, unit: "万" },
+            { name: "USDT", value: row.usdtBalance, unit: "U" },
+            { name: "Visa", value: row.visaBalance, unit: "美元" },
+          ],
+        };
+      }
+
+      function renderDashboard(data) {
+        dashboardData = data;
+        renderMonthFilter(data.monthly);
+        renderFilteredDashboard();
+        window.addEventListener("resize", resizeCharts);
+      }
+
+      function renderFilteredDashboard() {
+        const visibleMonthly =
+          selectedMonth === "all"
+            ? dashboardData.monthly
+            : dashboardData.monthly.filter((row) => row.month === selectedMonth);
+        const scopedTotal = buildTotal(visibleMonthly);
+        const scopedMoney = buildScopedMoney(dashboardData, selectedMonth);
+        const scopedData = {
+          ...dashboardData,
+          monthly: visibleMonthly,
+          total: selectedMonth === "all" ? dashboardData.total : scopedTotal,
+          latestActual:
+            selectedMonth === "all"
+              ? dashboardData.latestActual
+              : visibleMonthly[0] || dashboardData.latestActual,
+          categories: scopedMoney.categories,
+          accounts: scopedMoney.accounts,
+        };
+
+        renderKpis(scopedData);
+        renderMonthlyChart(visibleMonthly);
+        renderCategoryChart(scopedData.categories);
+        renderAccounts(scopedData.accounts);
+        renderDetailTable(visibleMonthly, scopedData.total);
+        renderBalanceChart(visibleMonthly);
+      }
+
+      function renderMonthFilter(monthly) {
+        const first = monthly[0]?.month || "2026-04";
+        const last = monthly[monthly.length - 1]?.month || "2026-12";
+        const select = document.getElementById("monthFilter");
+        select.innerHTML = [
+          `<option value="all">${first}/01 - ${monthEnd(last)}</option>`,
+          ...monthly.map((row) => `<option value="${row.month}">${row.month}</option>`),
+        ].join("");
+        select.value = selectedMonth;
+        select.addEventListener("change", (event) => {
+          selectedMonth = event.target.value;
+          renderFilteredDashboard();
+        });
+      }
+
+      function renderKpis(data) {
+        const current = data.latestActual || data.monthly[0] || {};
+        const cards = [
+          {
+            title: "实际收入 (W)",
+            value: current.income,
+            metaLeft: `目标：${formatNumber(current.targetIncome)}`,
+            metaRight: `完成率：${formatPercent(rate(current.income, current.targetIncome))}`,
+            color: "blue",
+            icon: walletIcon(),
+          },
+          {
+            title: "实际支出 (W)",
+            value: current.expense,
+            metaLeft: `目标：${formatNumber(current.targetExpense)}`,
+            metaRight: `预算使用率：${formatPercent(rate(current.expense, current.targetExpense))}`,
+            color: "red",
+            icon: downIcon(),
+          },
+          {
+            title: "实际存款 (W)",
+            value: current.saving,
+            metaLeft: `目标：${formatNumber(current.targetSaving)}`,
+            metaRight: `完成率：${formatPercent(rate(current.saving, current.targetSaving))}`,
+            color: "green",
+            icon: pigIcon(),
+          },
+          {
+            title: "存款完成率",
+            value: formatPercent(rate(current.saving, current.targetSaving)),
+            metaLeft: "目标：100%",
+            metaRight: `超额完成：${formatPercent(Math.max(rate(current.saving, current.targetSaving) - 1, 0))}`,
+            color: "purple",
+            icon: trendIcon(),
+            raw: true,
+          },
+          {
+            title: "收支结余 (W)",
+            value: current.netBalance,
+            metaLeft: `收入 - 支出`,
+            metaRight: `较目标存款：${formatSigned(current.variance)}`,
+            color: "orange",
+            icon: yenIcon(),
+          },
+        ];
+
+        document.getElementById("kpiGrid").innerHTML = cards
+          .map(
+            (card) => `
+              <article class="card kpi-card">
+                <div class="kpi-icon icon-${card.color} ${card.color}">${card.icon}</div>
+                <div class="kpi-content">
+                  <p class="kpi-title">${card.title}</p>
+                  <p class="kpi-value ${card.color}">${card.raw ? card.value : formatNumber(card.value)}</p>
+                </div>
+                <div class="kpi-meta">
+                  <span>${card.metaLeft}</span>
+                  <span>${card.metaRight.replace(/(：)(.*)/, `$1<strong class="${card.color}">$2</strong>`)}</span>
+                </div>
+              </article>`,
+          )
+          .join("");
+      }
+
+      function renderMonthlyChart(monthly) {
+        const chart = getChart("monthlyChart");
+        const compact = isCompact();
+        chart.setOption({
+          color: [colorMap.income, colorMap.expense, colorMap.saving],
+          tooltip: { trigger: "axis" },
+          legend: { top: 4, data: ["实际收入", "实际支出", "实际存款"] },
+          grid: { left: compact ? 48 : 50, right: 16, top: 58, bottom: compact ? 46 : 36 },
+          xAxis: {
+            type: "category",
+            data: monthly.map((row) => row.month),
+            axisTick: { show: false },
+            axisLabel: { interval: compact ? "auto" : 0 },
+          },
+          yAxis: { type: "value", splitLine: { lineStyle: { color: "#dfe7f0" } } },
+          series: [
+            lineSeries("实际收入", monthly.map((row) => row.income), colorMap.income, compact, "top", [0, -8]),
+            lineSeries("实际支出", monthly.map((row) => row.expense), colorMap.expense, compact, "top", [0, 0]),
+            lineSeries("实际存款", monthly.map((row) => row.saving), colorMap.saving, compact, "bottom", [0, 10]),
+          ],
+        });
+      }
+
+      function renderCategoryChart(categories) {
+        const total = categories.reduce((amount, item) => amount + item.value, 0);
+        document.getElementById("expenseTotal").textContent = formatNumber(total);
+        const chart = getChart("categoryChart");
+        chart.setOption({
+          color: ["#347df6", "#ff3030", "#ff9d00", "#12a347", "#7c24d8", "#1d9bf0", "#66a7ff"],
+          tooltip: { trigger: "item", formatter: "{b}: {c} ({d}%)" },
+          graphic: categories.length
+            ? []
+            : [
+                {
+                  type: "text",
+                  left: "center",
+                  top: "middle",
+                  style: { text: "暂无数据", fill: "#64748b", fontSize: 16, fontWeight: 600 },
+                },
+              ],
+          legend: {
+            show: categories.length > 0,
+            orient: "vertical",
+            right: 0,
+            top: "middle",
+            itemGap: 13,
+            formatter(name) {
+              const item = categories.find((row) => row.name === name);
+              const percent = total ? ((item.value / total) * 100).toFixed(1) : "0.0";
+              return `${name}   ${formatNumber(item.value)} (${percent}%)`;
+            },
+          },
+          series: [
+            {
+              type: "pie",
+              radius: ["36%", "68%"],
+              center: ["35%", "50%"],
+              data: categories,
+              label: { formatter: "{d}%", fontWeight: 800 },
+            },
+          ],
+        });
+      }
+
+      function renderAccounts(accounts) {
+        const rmbTotal = calculateRmbTotal(accounts);
+        document.getElementById("accountSummary").innerHTML = accounts.length
+          ? [
+              ...accounts.map(
+                (account) => `
+                  <div class="account-pill">
+                    <span>${account.name}</span>
+                    <strong>${formatAccountValue(account)}</strong>
+                  </div>`,
+              ),
+              `
+                <div class="account-pill">
+                  <span>折合人民币</span>
+                  <strong>${rmbTotal === null ? "汇率读取失败" : `¥${formatNumber(rmbTotal)}`}</strong>
+                </div>`,
+            ].join("")
+          : `<div class="account-pill"><span>账户</span><strong>暂无数据</strong></div>`;
+        document.getElementById("accountsBody").innerHTML = `${accounts
+          .map(
+            (account) => `
+              <tr>
+                <td>${account.name}</td>
+                <td>${formatAccountValue(account)}</td>
+              </tr>`,
+          )
+          .join("")}
+          <tr class="account-total">
+            <td>折合人民币</td>
+            <td>${rmbTotal === null ? "汇率读取失败" : `¥${formatNumber(rmbTotal)}`}</td>
+          </tr>`;
+      }
+
+      function renderDetailTable(monthly, total) {
+        document.getElementById("detailBody").innerHTML = monthly
+          .map(
+            (row) => `
+              <tr>
+                <td>${row.month}</td>
+                <td>${formatNumber(row.income)}</td>
+                <td>${formatNumber(row.expense)}</td>
+                <td>${formatNumber(row.saving)}</td>
+                <td class="${row.savingRate >= 1 ? "green" : "green"}">${formatPercent(row.savingRate)}</td>
+                <td class="${row.variance >= 0 ? "green" : "red"}">${formatSigned(row.variance)}</td>
+              </tr>`,
+          )
+          .join("");
+        document.getElementById("detailFoot").innerHTML = `
+          <tr>
+            <td>合计</td>
+            <td>${formatNumber(total.income)}</td>
+            <td>${formatNumber(total.expense)}</td>
+            <td>${formatNumber(total.saving)}</td>
+            <td class="green">${formatPercent(total.savingRate)}</td>
+            <td class="${total.variance >= 0 ? "green" : "red"}">${formatSigned(total.variance)}</td>
+          </tr>`;
+      }
+
+      function renderBalanceChart(monthly) {
+        const chart = getChart("balanceChart");
+        const compact = isCompact();
+        let cumulative = 0;
+        const net = monthly.map((row) => row.targetSaving + row.variance);
+        const cumulativeData = net.map((value) => {
+          cumulative += value;
+          return cumulative;
+        });
+
+        chart.setOption({
+          color: ["#6cc16f", colorMap.income],
+          tooltip: { trigger: "axis" },
+          legend: { top: 4, data: ["净结余（W）", "累计净结余（W）"] },
+          grid: { left: compact ? 48 : 54, right: compact ? 16 : 58, top: 62, bottom: compact ? 46 : 38 },
+          xAxis: {
+            type: "category",
+            data: monthly.map((row) => row.month),
+            axisTick: { show: false },
+            axisLabel: { interval: compact ? "auto" : 0 },
+          },
+          yAxis: [
+            { type: "value", splitLine: { lineStyle: { color: "#dfe7f0" } } },
+            { type: "value", splitLine: { show: false } },
+          ],
+          series: [
+            {
+              name: "净结余（W）",
+              type: "bar",
+              barWidth: 36,
+              itemStyle: { color: "#6cc16f" },
+              label: {
+                show: !compact,
+                position: "insideTop",
+                distance: 8,
+                formatter: ({ value }) => formatNumber(value),
+                color: "#ffffff",
+                fontWeight: 800,
+              },
+              data: net,
+            },
+            {
+              name: "累计净结余（W）",
+              type: "line",
+              yAxisIndex: 1,
+              symbolSize: 8,
+              lineStyle: { width: 3 },
+              label: {
+                show: !compact,
+                position: "top",
+                offset: [0, -8],
+                formatter: ({ value }) => formatNumber(value),
+                color: colorMap.income,
+              },
+              data: cumulativeData,
+            },
+          ],
+        });
+      }
+
+      function lineSeries(name, data, color, compact, position, offset) {
+        return {
+          name,
+          type: "line",
+          symbolSize: 8,
+          lineStyle: { width: 3 },
+          labelLayout: { hideOverlap: true },
+          label: {
+            show: true,
+            position,
+            offset,
+            color,
+            fontWeight: 800,
+            backgroundColor: "rgba(255,255,255,0.86)",
+            borderRadius: 4,
+            padding: [2, 4],
+            formatter: ({ value }) => (Number(value) ? formatNumber(value) : ""),
+          },
+          data,
+        };
+      }
+
+      function getChart(id) {
+        if (!charts[id]) charts[id] = echarts.init(document.getElementById(id));
+        return charts[id];
+      }
+
+      function resizeCharts() {
+        renderFilteredDashboard();
+        Object.values(charts).forEach((chart) => chart.resize());
+      }
+
+      function isCompact() {
+        return window.matchMedia("(max-width: 760px)").matches;
+      }
+
+      function clean(value) {
+        return String(value || "").trim();
+      }
+
+      function toNumber(value) {
+        const parsed = Number(String(value || "").replace(/[%,$,\s]/g, ""));
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
+
+      function toRate(value) {
+        const raw = clean(value);
+        if (!raw) return 0;
+        return raw.includes("%") ? toNumber(raw) / 100 : toNumber(raw);
+      }
+
+      function sum(rows, key) {
+        return rows.reduce((amount, row) => amount + (Number(row[key]) || 0), 0);
+      }
+
+      function rate(value, target) {
+        return target > 0 ? value / target : 0;
+      }
+
+      function formatNumber(value) {
+        return Math.round(Number(value) || 0).toLocaleString("zh-CN");
+      }
+
+      function formatAccountValue(account) {
+        const suffix = account.unit ? ` ${account.unit}` : "";
+        return `${formatNumber(account.value)}${suffix}`;
+      }
+
+      function calculateRmbTotal(accounts) {
+        if (!exchangeRates || !accounts.length) return null;
+        return accounts.reduce((total, account) => total + accountToRmb(account), 0);
+      }
+
+      function accountToRmb(account) {
+        const value = Number(account.value) || 0;
+        if (account.name === "越南盾") {
+          const vndAmount = value * 10000;
+          return (vndAmount / exchangeRates.vndPerUsd) * exchangeRates.cnyPerUsd;
+        }
+        if (account.name === "USDT" || account.name === "Visa") {
+          return value * exchangeRates.cnyPerUsd;
+        }
+        return 0;
+      }
+
+      function formatSigned(value) {
+        const number = Number(value) || 0;
+        return `${number > 0 ? "+" : ""}${formatNumber(number)}`;
+      }
+
+      function formatPercent(value) {
+        return `${((Number(value) || 0) * 100).toFixed(2)}%`;
+      }
+
+      function monthEnd(month) {
+        const [year, monthNumber] = month.split("-").map(Number);
+        const date = new Date(year, monthNumber, 0);
+        return `${year}/${String(monthNumber).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`;
+      }
+
+      function walletIcon() {
+        return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6.5A3.5 3.5 0 0 1 7.5 3H18a1 1 0 1 1 0 2H7.5a1.5 1.5 0 0 0 0 3H19a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V6.5h2Zm14 8a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></svg>`;
+      }
+
+      function downIcon() {
+        return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 4a1 1 0 0 1 2 0v10.59l3.3-3.3a1 1 0 1 1 1.4 1.42l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 1 1 1.4-1.42l3.3 3.3V4Z"/><path d="M5 19a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Z"/></svg>`;
+      }
+
+      function pigIcon() {
+        return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 9.5A5.5 5.5 0 0 1 12.5 4H15a5 5 0 0 1 4.8 3.6l1.2.4a1.5 1.5 0 0 1 1 1.42v2.16a1.5 1.5 0 0 1-1 1.42l-1.07.36A5.02 5.02 0 0 1 17 16.9V19a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1h-2v1a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-2.2A5.5 5.5 0 0 1 7 9.5Zm4-2.5a1 1 0 1 0 0 2h3a1 1 0 1 0 0-2h-3Zm7 3a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"/></svg>`;
+      }
+
+      function trendIcon() {
+        return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 17a1 1 0 0 1-.7-1.7l5-5a1 1 0 0 1 1.4 0l2.3 2.29L18.59 6H16a1 1 0 1 1 0-2h5a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0V7.41l-7.3 7.3a1 1 0 0 1-1.4 0L9 12.41l-4.3 4.3A1 1 0 0 1 4 17Z"/></svg>`;
+      }
+
+      function yenIcon() {
+        return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm3.7 5.7L13.4 12H16a1 1 0 1 1 0 2h-3v1h3a1 1 0 1 1 0 2h-3v1a1 1 0 1 1-2 0v-1H8a1 1 0 1 1 0-2h3v-1H8a1 1 0 1 1 0-2h2.6L8.3 8.7a1 1 0 0 1 1.4-1.4L12 9.6l2.3-2.3a1 1 0 1 1 1.4 1.4Z"/></svg>`;
+      }
+    </script>
+  </body>
+</html>

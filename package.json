@@ -1,0 +1,12 @@
+{
+  "name": "personal-finance-bi-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Password-protected personal finance BI dashboard backed by Google Sheets.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
