@@ -30,6 +30,10 @@
         box-sizing: border-box;
       }
 
+      html {
+        scroll-behavior: smooth;
+      }
+
       body {
         margin: 0;
         min-width: 320px;
@@ -91,6 +95,8 @@
         color: #334155;
         font-size: 14px;
         font-weight: 650;
+        text-decoration: none;
+        cursor: pointer;
       }
 
       .nav-item.active {
@@ -219,18 +225,18 @@
 
       .kpi-grid {
         display: grid;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
+        grid-template-columns: minmax(280px, 1.8fr) repeat(5, minmax(150px, 1fr));
         gap: 14px;
         margin-bottom: 16px;
       }
 
       .kpi-card {
-        min-height: 132px;
-        padding: 18px;
+        min-height: 126px;
+        padding: 16px;
       }
 
       .kpi-primary {
-        grid-column: span 2;
+        grid-column: auto;
       }
 
       .kpi-title {
@@ -249,7 +255,7 @@
       }
 
       .kpi-primary .kpi-value {
-        font-size: 40px;
+        font-size: 38px;
       }
 
       .kpi-meta {
@@ -282,6 +288,11 @@
         grid-template-columns: repeat(12, minmax(0, 1fr));
         align-items: start;
         gap: 16px;
+      }
+
+      .anchor-section,
+      .panel {
+        scroll-margin-top: 24px;
       }
 
       .panel {
@@ -512,7 +523,7 @@
         }
 
         .kpi-primary {
-          grid-column: span 2;
+          grid-column: 1 / -1;
         }
 
         .dashboard-grid {
@@ -610,15 +621,15 @@
           <span>个人财务看板</span>
         </div>
         <nav class="nav-list">
-          <div class="nav-item active"><span class="nav-icon">⌂</span><span>概览</span></div>
-          <div class="nav-item"><span class="nav-icon">↔</span><span>资金流水</span></div>
-          <div class="nav-item"><span class="nav-icon">◎</span><span>预算管理</span></div>
-          <div class="nav-item"><span class="nav-icon">◫</span><span>账户管理</span></div>
-          <div class="nav-item"><span class="nav-icon">▦</span><span>分类管理</span></div>
-          <div class="nav-item"><span class="nav-icon">▤</span><span>报表中心</span></div>
-          <div class="nav-item"><span class="nav-icon">◉</span><span>目标设置</span></div>
-          <div class="nav-item"><span class="nav-icon">↻</span><span>数据同步</span></div>
-          <div class="nav-item"><span class="nav-icon">⚙</span><span>设置</span></div>
+          <a class="nav-item active" href="#overview"><span class="nav-icon">⌂</span><span>概览</span></a>
+          <a class="nav-item" href="#cashflow"><span class="nav-icon">↔</span><span>资金流水</span></a>
+          <a class="nav-item" href="#saving-progress"><span class="nav-icon">◎</span><span>预算管理</span></a>
+          <a class="nav-item" href="#accounts"><span class="nav-icon">◫</span><span>账户管理</span></a>
+          <a class="nav-item" href="#expense-categories"><span class="nav-icon">▦</span><span>分类管理</span></a>
+          <a class="nav-item" href="#monthly-detail"><span class="nav-icon">▤</span><span>报表中心</span></a>
+          <a class="nav-item" href="#saving-progress"><span class="nav-icon">◉</span><span>目标设置</span></a>
+          <a class="nav-item" href="#overview"><span class="nav-icon">↻</span><span>数据同步</span></a>
+          <a class="nav-item" href="#ai-insights"><span class="nav-icon">⚙</span><span>设置</span></a>
         </nav>
         <div class="sidebar-status">
           <div class="status-row"><span class="status-dot"></span><span>已同步</span></div>
@@ -649,16 +660,18 @@
           </div>
         </header>
 
-        <section class="kpi-grid" id="kpiGrid"></section>
+        <section class="anchor-section" id="overview">
+          <div class="kpi-grid" id="kpiGrid"></div>
+        </section>
 
         <section class="dashboard-grid">
-          <article class="card panel progress-panel">
+          <article class="card panel progress-panel" id="saving-progress">
             <h2>年度存款进度</h2>
             <p class="section-subtitle">实际存款、累计存款与目标进度对比</p>
             <div class="chart" id="savingProgressChart"></div>
           </article>
 
-          <article class="card panel accounts-panel">
+          <article class="card panel accounts-panel" id="accounts">
             <h2>账户资产</h2>
             <p class="section-subtitle">多币种资产与折合人民币</p>
             <div class="account-summary" id="accountSummary"></div>
@@ -673,24 +686,24 @@
             </table>
           </article>
 
-          <article class="card panel cashflow-panel">
+          <article class="card panel cashflow-panel" id="cashflow">
             <h2>现金流趋势</h2>
             <p class="section-subtitle">收入、支出与收支结余</p>
             <div class="chart" id="cashflowChart"></div>
           </article>
 
-          <article class="card panel category-panel">
+          <article class="card panel category-panel" id="expense-categories">
             <h2>支出分类</h2>
             <p class="section-subtitle">仅展示消费类目，不含兑换和账户结余</p>
             <div class="chart" id="categoryChart"></div>
           </article>
 
-          <article class="card panel ai-panel">
+          <article class="card panel ai-panel" id="ai-insights">
             <h2>AI 财务洞察</h2>
             <div class="insight-grid" id="aiInsights"></div>
           </article>
 
-          <article class="card panel detail-panel">
+          <article class="card panel detail-panel" id="monthly-detail">
             <h2>月度明细</h2>
             <div class="detail-table-wrap">
               <table class="detail-table">
@@ -765,7 +778,17 @@
       let selectedMonth = "all";
       let exchangeRates = null;
 
+      initNavigation();
       init();
+
+      function initNavigation() {
+        document.querySelectorAll(".nav-item[href^='#']").forEach((link) => {
+          link.addEventListener("click", () => {
+            document.querySelectorAll(".nav-item").forEach((item) => item.classList.remove("active"));
+            link.classList.add("active");
+          });
+        });
+      }
 
       async function init() {
         try {
@@ -1055,6 +1078,7 @@
         const completion = rate(annual.saving, annual.targetSaving);
         const varianceClass = annual.variance >= 0 ? "green" : "red";
         const monthNet = month.netBalance || 0;
+        const monthLabel = month.month || "当前月份";
         const cards = [
           {
             title: "当前净资产",
@@ -1074,19 +1098,19 @@
           {
             title: "本月收入",
             value: month.income,
-            meta: `目标 ${formatNumber(month.targetIncome)}`,
+            meta: `${monthLabel} · 目标 ${formatNumber(month.targetIncome)}`,
             color: "blue",
           },
           {
             title: "本月支出",
             value: month.expense,
-            meta: `预算 ${formatNumber(month.targetExpense)}`,
+            meta: `${monthLabel} · 预算 ${formatNumber(month.targetExpense)}`,
             color: month.expense > month.targetExpense ? "red" : "",
           },
           {
             title: "本月结余",
             value: monthNet,
-            meta: "收入 - 支出",
+            meta: `${monthLabel} · 收入 - 支出`,
             color: monthNet >= 0 ? "green" : "red",
           },
           {
