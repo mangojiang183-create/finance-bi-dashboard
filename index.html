@@ -681,9 +681,29 @@
         const monthly = [];
         const currencyRows = [];
         let total = null;
+        let currencyTotal = null;
 
         body.forEach((row) => {
           const month = clean(row[0]);
+          const currency = {
+            month: clean(row[10]),
+            exchange: toNumber(row[11]),
+            expense: toNumber(row[12]),
+            vndBalance: toNumber(row[13]),
+            usdtBalance: toNumber(row[14]),
+            visaBalance: toNumber(row[15]),
+          };
+          const hasCurrencyValue =
+            currency.exchange || currency.expense || currency.vndBalance || currency.usdtBalance || currency.visaBalance;
+
+          if (hasCurrencyValue) {
+            if (currency.month && currency.month !== "合计") {
+              currencyRows.push(currency);
+            } else {
+              currencyTotal = currency;
+            }
+          }
+
           if (!month) return;
 
           const income = toNumber(row[4]);
@@ -704,23 +724,10 @@
             variance: saving - targetSaving,
           };
 
-          const currency = {
-            month: clean(row[10]),
-            exchange: toNumber(row[11]),
-            expense: toNumber(row[12]),
-            vndBalance: toNumber(row[13]),
-            usdtBalance: toNumber(row[14]),
-            visaBalance: toNumber(row[15]),
-          };
-
           if (month === "合计") {
             total = entry;
           } else {
             monthly.push(entry);
-          }
-
-          if (currency.month && currency.month !== "合计") {
-            currencyRows.push(currency);
           }
         });
 
@@ -733,7 +740,7 @@
             : 0;
 
         const latestActual = [...monthly].reverse().find((row) => row.income || row.expense || row.saving) || monthly[0];
-        const latestCurrency = [...currencyRows].reverse().find(
+        const latestCurrency = currencyTotal || [...currencyRows].reverse().find(
           (row) => row.exchange || row.expense || row.vndBalance || row.usdtBalance || row.visaBalance,
         );
         const categories = latestCurrency
