@@ -35,6 +35,100 @@
         font-family: "Inter", "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
       }
 
+      .app-shell {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        padding: 22px 16px;
+        border-right: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(14px);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 8px 20px;
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      .brand-mark {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: #eff6ff;
+        color: var(--blue);
+        font-size: 16px;
+      }
+
+      .nav-list {
+        display: grid;
+        gap: 4px;
+      }
+
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 42px;
+        padding: 0 12px;
+        border-radius: 8px;
+        color: #334155;
+        font-size: 14px;
+        font-weight: 650;
+      }
+
+      .nav-item.active {
+        background: #eff6ff;
+        color: var(--blue);
+      }
+
+      .nav-icon {
+        display: grid;
+        place-items: center;
+        width: 18px;
+        color: currentColor;
+        font-size: 15px;
+      }
+
+      .sidebar-status {
+        margin-top: auto;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .status-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+        color: var(--text);
+        font-weight: 650;
+      }
+
+      .status-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: var(--green);
+      }
+
       .page {
         width: min(1480px, 100%);
         margin: 0 auto;
@@ -137,7 +231,7 @@
         display: grid;
         grid-template-columns: minmax(0, 1fr) 168px;
         gap: 18px;
-        min-height: 186px;
+        min-height: 142px;
         padding: 22px;
       }
 
@@ -186,48 +280,6 @@
 
       .asset-card .kpi-value {
         font-size: 42px;
-      }
-
-      .overview-progress {
-        margin-top: 16px;
-      }
-
-      .overview-progress-track {
-        height: 8px;
-        overflow: hidden;
-        border-radius: 999px;
-        background: #e2e8f0;
-      }
-
-      .overview-progress-fill {
-        height: 100%;
-        border-radius: inherit;
-        background: var(--blue);
-      }
-
-      .overview-stats {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 10px;
-        margin-top: 18px;
-      }
-
-      .overview-stat {
-        min-width: 0;
-        padding-top: 10px;
-        border-top: 1px solid var(--line);
-      }
-
-      .overview-stat span {
-        display: block;
-        color: var(--muted);
-        font-size: 12px;
-      }
-
-      .overview-stat strong {
-        display: block;
-        margin-top: 5px;
-        font-size: 16px;
       }
 
       .metric-card {
@@ -474,6 +526,14 @@
       }
 
       @media (max-width: 1320px) {
+        .app-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          display: none;
+        }
+
         .kpi-grid {
           grid-template-columns: repeat(2, minmax(210px, 1fr));
         }
@@ -565,10 +625,6 @@
           grid-template-columns: 1fr;
         }
 
-        .overview-stats {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
         .account-summary {
           grid-template-columns: 1fr;
         }
@@ -581,7 +637,30 @@
     </style>
   </head>
   <body>
-    <main class="page">
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="主导航">
+        <div class="brand">
+          <span class="brand-mark">◇</span>
+          <span>个人财务看板</span>
+        </div>
+        <nav class="nav-list">
+          <div class="nav-item active"><span class="nav-icon">⌂</span><span>概览</span></div>
+          <div class="nav-item"><span class="nav-icon">↔</span><span>资金流水</span></div>
+          <div class="nav-item"><span class="nav-icon">◎</span><span>预算管理</span></div>
+          <div class="nav-item"><span class="nav-icon">◫</span><span>账户管理</span></div>
+          <div class="nav-item"><span class="nav-icon">▦</span><span>分类管理</span></div>
+          <div class="nav-item"><span class="nav-icon">▤</span><span>报表中心</span></div>
+          <div class="nav-item"><span class="nav-icon">◉</span><span>目标设置</span></div>
+          <div class="nav-item"><span class="nav-icon">↻</span><span>数据同步</span></div>
+          <div class="nav-item"><span class="nav-icon">⚙</span><span>设置</span></div>
+        </nav>
+        <div class="sidebar-status">
+          <div class="status-row"><span class="status-dot"></span><span>已同步</span></div>
+          <div>刚刚更新</div>
+        </div>
+      </aside>
+
+      <main class="page">
       <header class="topbar">
         <div>
           <h1>个人财务看板</h1>
@@ -664,7 +743,8 @@
         </svg>
         <span>小贴士：存款完成率 = 实际存款 ÷ 目标存款；收支结余 = 实际收入 - 实际支出；较目标存款 = 实际存款 - 目标存款</span>
       </footer>
-    </main>
+      </main>
+    </div>
 
     <script>
       const CSV_URL = "/api/data";
@@ -1042,38 +1122,11 @@
         document.getElementById("kpiGrid").innerHTML = `
           <article class="card kpi-card asset-card">
             <div>
-              <div class="overview-header">
-                <p class="overview-label">概览</p>
-                <span class="overview-badge">${completion >= 1 ? "目标已达成" : "年度目标推进中"}</span>
-              </div>
               <p class="kpi-title">当前资产折合人民币</p>
               <p class="kpi-value blue">${assetValue}</p>
               <div class="kpi-meta">
                 <span>年度存款完成率 <strong class="blue">${formatPercent(completion)}</strong></span>
                 <span>较目标 <strong class="${varianceClass}">${formatSigned(current.variance)}</strong></span>
-              </div>
-              <div class="overview-progress" aria-label="年度存款完成率">
-                <div class="overview-progress-track">
-                  <div class="overview-progress-fill" style="width: ${Math.min(completion * 100, 100).toFixed(1)}%"></div>
-                </div>
-              </div>
-              <div class="overview-stats">
-                <div class="overview-stat">
-                  <span>实际存款</span>
-                  <strong class="green">${formatNumber(current.saving)}</strong>
-                </div>
-                <div class="overview-stat">
-                  <span>目标存款</span>
-                  <strong>${formatNumber(current.targetSaving)}</strong>
-                </div>
-                <div class="overview-stat">
-                  <span>收支结余</span>
-                  <strong class="${current.netBalance >= 0 ? "green" : "red"}">${formatSigned(current.netBalance)}</strong>
-                </div>
-                <div class="overview-stat">
-                  <span>距目标</span>
-                  <strong class="${varianceClass}">${formatSigned(current.variance)}</strong>
-                </div>
               </div>
             </div>
             <div class="asset-mini-chart">${sparklineSvg(data.monthly.map((row) => row.saving))}</div>
