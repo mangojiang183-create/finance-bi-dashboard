@@ -22,14 +22,35 @@ const publicFiles = {
 
 const server = http.createServer(async (req, res) => {
   try {
+    const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+
+    if (url.pathname === "/login") {
+      if (req.method === "POST") {
+        await handleLogin(req, res);
+        return;
+      }
+      sendLoginPage(res);
+      return;
+    }
+
+    if (url.pathname === "/logout") {
+      send(res, 303, "", "text/plain; charset=utf-8", {
+        "Location": "/login",
+        "Set-Cookie": `${SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`,
+      });
+      return;
+    }
+
     const auth = getAuthState(req);
     if (!auth.ok) {
-      sendAuthRequired(res);
+      if (isPageRequest(url.pathname)) {
+        sendLoginPage(res);
+      } else {
+        sendAuthRequired(res);
+      }
       return;
     }
     const authHeaders = auth.refreshCookie ? { "Set-Cookie": createSessionCookie() } : {};
-
-    const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
 
     if (url.pathname === "/api/data") {
       const csv = await fetchText(GOOGLE_CSV_URL);
@@ -121,6 +142,142 @@ function parseCookies(header) {
     if (key) cookies[key] = value;
     return cookies;
   }, {});
+}
+
+function isPageRequest(pathname) {
+  return pathname === "/" || pathname === "/index.html";
+}
+
+async function handleLogin(req, res) {
+  const body = await readRequestBody(req);
+  const form = new URLSearchParams(body);
+  const user = form.get("user") || "";
+  const password = form.get("password") || "";
+
+  if (safeEqual(user, DASHBOARD_USER) && safeEqual(password, DASHBOARD_PASSWORD)) {
+    send(res, 303, "", "text/plain; charset=utf-8", {
+      "Location": "/index.html",
+      "Set-Cookie": createSessionCookie(),
+    });
+    return;
+  }
+
+  sendLoginPage(res, "账号或密码错误");
+}
+
+function readRequestBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+    req.setEncoding("utf8");
+    req.on("data", (chunk) => {
+      body += chunk;
+      if (body.length > 8192) {
+        reject(new Error("Request body too large"));
+        req.destroy();
+      }
+    });
+    req.on("end", () => resolve(body));
+    req.on("error", reject);
+  });
+}
+
+function sendLoginPage(res, error = "") {
+  const errorHtml = error ? `<p class="error">${escapeHtml(error)}</p>` : "";
+  send(
+    res,
+    200,
+    `<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>登录 - 个人财务BI看板</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #f5f8fc;
+        color: #07162f;
+        font-family: "Inter", "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      }
+      .login {
+        width: min(420px, calc(100vw - 32px));
+        padding: 28px;
+        border: 1px solid #dbe4ef;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 8px 24px rgba(20, 38, 66, 0.08);
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 26px;
+        line-height: 1.2;
+      }
+      p {
+        margin: 0 0 22px;
+        color: #64748b;
+      }
+      label {
+        display: block;
+        margin: 14px 0 7px;
+        font-weight: 700;
+      }
+      input {
+        width: 100%;
+        height: 46px;
+        padding: 0 12px;
+        border: 1px solid #cfd9e6;
+        border-radius: 8px;
+        color: #07162f;
+        font: inherit;
+      }
+      button {
+        width: 100%;
+        height: 48px;
+        margin-top: 22px;
+        border: 0;
+        border-radius: 8px;
+        background: #1267ff;
+        color: #fff;
+        font: inherit;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .error {
+        margin: 14px 0 0;
+        color: #fb1f1f;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <form class="login" method="post" action="/login">
+      <h1>个人财务BI看板</h1>
+      <p>请输入账号密码查看实时数据。</p>
+      <label for="user">账号</label>
+      <input id="user" name="user" autocomplete="username" required />
+      <label for="password">密码</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required />
+      <button type="submit">登录</button>
+      ${errorHtml}
+    </form>
+  </body>
+</html>`,
+    "text/html; charset=utf-8",
+    { "Cache-Control": "no-store" },
+  );
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function safeEqual(actual, expected) {
