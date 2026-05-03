@@ -824,7 +824,7 @@
           total: selectedMonth === "all" ? dashboardData.total : scopedTotal,
           latestActual:
             selectedMonth === "all"
-              ? dashboardData.latestActual
+              ? dashboardData.total
               : visibleMonthly[0] || dashboardData.latestActual,
           categories: scopedMoney.categories,
           accounts: scopedMoney.accounts,
