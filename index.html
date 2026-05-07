@@ -773,7 +773,7 @@
 
           <article class="card panel category-panel" id="expense-categories">
             <h2>支出分类</h2>
-            <p class="section-subtitle">仅展示消费类目，不含兑换和账户结余</p>
+            <p class="section-subtitle">单位：万越南盾；仅展示消费类目，不含兑换和账户结余</p>
             <div class="chart" id="categoryChart"></div>
           </article>
 
@@ -817,17 +817,17 @@
         "https://docs.google.com/spreadsheets/d/1TzNIHcOvIC4uhMi2rqJ9xP1kRFco7c4OKhxE5Woylro/gviz/tq?tqx=out:csv&gid=504817751";
       const DIRECT_EXCHANGE_RATE_URL = "https://open.er-api.com/v6/latest/USD";
 
-      const DEFAULT_CSV = `月份,目标收入,目标支出,目标存款,实际收入,实际支出,实际存款,存款完成率,偏差,,月份,越南盾兑换,支出,结余（越南盾 单位万）,结余（usdt 单位U）,结余（visa 单位美元）
-2026-04,5305,2500,2805,5525,2673,5352,190.80%,2547,,2026-04,2600,1990,610,5439,260
-2026-05,4755,2500,2255,5000,,5000,221.73%,2745,,2026-05,,,0,5000,
-2026-06,4695,2500,2195,,,0,0.00%,-2195,,2026-06,,,0,0,
-2026-07,4635,2500,2135,,,0,0.00%,-2135,,2026-07,,,0,0,
-2026-08,4575,2500,2075,,,0,0.00%,-2075,,2026-08,,,0,0,
-2026-09,4515,2500,2015,,,0,0.00%,-2015,,2026-09,,,0,0,
-2026-10,4455,2500,1955,,,0,0.00%,-1955,,2026-10,,,0,0,
-2026-11,4395,2500,1895,,,0,0.00%,-1895,,2026-11,,,0,0,
-2026-12,4335,2500,1835,,,0,0.00%,-1835,,2026-12,,,0,0,
-,41665,22500,19165,10525,2673,10352,54.02%,-8813,,,2600,1990,610,10352,260`;
+      const DEFAULT_CSV = `月份,目标收入,目标支出,目标存款,实际收入,实际支出,实际存款,存款完成率,偏差,,月份,越南盾兑换,支出,结余（越南盾 单位万）,结余（usdt 单位U）,结余（visa 单位美元）,结余（现金 单位美元）
+2026-04,5305,2500,2805,5525,2673,5352,190.80%,2547,,2026-04,2600,2270,330,5352,260,1000
+2026-05,5245,2500,2745,580,100,480,17.49%,-2265,,2026-05,,,0,480,,
+2026-06,5185,2500,2685,,,0,0.00%,-2685,,2026-06,,,0,0,,
+2026-07,5125,2500,2625,,,0,0.00%,-2625,,2026-07,,,0,0,,
+2026-08,5065,2500,2565,,,0,0.00%,-2565,,2026-08,,,0,0,,
+2026-09,5005,2500,2505,,,0,0.00%,-2505,,2026-09,,,0,0,,
+2026-10,4945,2500,2445,,,0,0.00%,-2445,,2026-10,,,0,0,,
+2026-11,4885,2500,2385,,,0,0.00%,-2385,,2026-11,,,0,0,,
+2026-12,4825,2500,2325,,,0,0.00%,-2325,,2026-12,,,0,0,,
+,45585,22500,23085,6105,2773,5832,25.26%,-17253,,,2600,2270,330,5832,260,1000`;
 
       const BASE_EXPENSE_CATEGORIES = [
         { name: "房租", value: 500 },
@@ -839,9 +839,10 @@
       ];
 
       const FALLBACK_ACCOUNTS = [
-        { name: "越南盾", value: 610, unit: "万" },
-        { name: "USDT", value: 5352, unit: "U" },
+        { name: "越南盾", value: 330, unit: "万" },
+        { name: "USDT", value: 5832, unit: "U" },
         { name: "Visa", value: 260, unit: "美元" },
+        { name: "美金现金", value: 1000, unit: "美元" },
       ];
 
       const colorMap = {
@@ -993,9 +994,15 @@
             vndBalance: toNumber(row[13]),
             usdtBalance: toNumber(row[14]),
             visaBalance: toNumber(row[15]),
+            usdCashBalance: toNumber(row[16]),
           };
           const hasCurrencyValue =
-            currency.exchange || currency.expense || currency.vndBalance || currency.usdtBalance || currency.visaBalance;
+            currency.exchange ||
+            currency.expense ||
+            currency.vndBalance ||
+            currency.usdtBalance ||
+            currency.visaBalance ||
+            currency.usdCashBalance;
 
           if (hasCurrencyValue) {
             if (currency.month && currency.month !== "合计") {
@@ -1039,13 +1046,15 @@
         const latestCurrency =
           currencyTotal ||
           [...currencyRows].reverse().find(
-            (row) => row.exchange || row.expense || row.vndBalance || row.usdtBalance || row.visaBalance,
+            (row) =>
+              row.exchange || row.expense || row.vndBalance || row.usdtBalance || row.visaBalance || row.usdCashBalance,
           );
         const accounts = latestCurrency
           ? [
               { name: "越南盾", value: latestCurrency.vndBalance, unit: "万" },
               { name: "USDT", value: latestCurrency.usdtBalance, unit: "U" },
               { name: "Visa", value: latestCurrency.visaBalance, unit: "美元" },
+              { name: "美金现金", value: latestCurrency.usdCashBalance, unit: "美元" },
             ]
           : FALLBACK_ACCOUNTS;
 
@@ -1099,6 +1108,7 @@
                 { name: "越南盾", value: row.vndBalance, unit: "万" },
                 { name: "USDT", value: row.usdtBalance, unit: "U" },
                 { name: "Visa", value: row.visaBalance, unit: "美元" },
+                { name: "美金现金", value: row.usdCashBalance, unit: "美元" },
               ]
             : FALLBACK_ACCOUNTS,
           expenseCategories: buildExpenseCategories(scopedTotal.expense),
@@ -1361,7 +1371,7 @@
             formatter(items) {
               const item = items[0];
               const percent = total ? ((item.value / total) * 100).toFixed(1) : "0.0";
-              return `${item.name}<br/>${formatNumber(item.value)} (${percent}%)`;
+              return `${item.name}<br/>${formatNumber(item.value)} 万越南盾 (${percent}%)`;
             },
           },
           graphic: ranked.length
@@ -1377,6 +1387,8 @@
           grid: { left: 96, right: 46, top: 12, bottom: 24 },
           xAxis: {
             type: "value",
+            name: "万越南盾",
+            nameTextStyle: { color: "#64748b", padding: [0, 0, 0, 8] },
             axisLabel: { color: "#64748b" },
             splitLine: { lineStyle: { color: "#edf2f7" } },
           },
@@ -1392,7 +1404,7 @@
               type: "bar",
               barWidth: 16,
               itemStyle: { borderRadius: [0, 4, 4, 0], color: colorMap.income },
-              label: { show: true, position: "right", color: "#64748b", formatter: ({ value }) => formatNumber(value) },
+              label: { show: true, position: "right", color: "#64748b", formatter: ({ value }) => `${formatNumber(value)} 万` },
               data: ranked.map((item) => item.value),
             },
           ],
@@ -1587,7 +1599,7 @@
           const vndAmount = value * 10000;
           return (vndAmount / exchangeRates.vndPerUsd) * exchangeRates.cnyPerUsd;
         }
-        if (account.name === "USDT" || account.name === "Visa") {
+        if (account.name === "USDT" || account.unit === "美元") {
           return value * exchangeRates.cnyPerUsd;
         }
         return 0;
