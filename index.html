@@ -817,17 +817,17 @@
         "https://docs.google.com/spreadsheets/d/1TzNIHcOvIC4uhMi2rqJ9xP1kRFco7c4OKhxE5Woylro/gviz/tq?tqx=out:csv&gid=504817751";
       const DIRECT_EXCHANGE_RATE_URL = "https://open.er-api.com/v6/latest/USD";
 
-      const DEFAULT_CSV = `月份,目标收入,目标支出,目标存款,实际收入,实际支出,实际存款,存款完成率,偏差,,月份,越南盾兑换,支出,结余（越南盾 单位万）,结余（usdt 单位U）,结余（visa 单位美元）,结余（现金 单位美元）
-2026-04,5305,2500,2805,5525,2673,5352,190.80%,2547,,2026-04,2600,2270,330,5352,260,1000
-2026-05,5245,2500,2745,580,100,480,17.49%,-2265,,2026-05,,,0,480,,
-2026-06,5185,2500,2685,,,0,0.00%,-2685,,2026-06,,,0,0,,
-2026-07,5125,2500,2625,,,0,0.00%,-2625,,2026-07,,,0,0,,
-2026-08,5065,2500,2565,,,0,0.00%,-2565,,2026-08,,,0,0,,
-2026-09,5005,2500,2505,,,0,0.00%,-2505,,2026-09,,,0,0,,
-2026-10,4945,2500,2445,,,0,0.00%,-2445,,2026-10,,,0,0,,
-2026-11,4885,2500,2385,,,0,0.00%,-2385,,2026-11,,,0,0,,
-2026-12,4825,2500,2325,,,0,0.00%,-2325,,2026-12,,,0,0,,
-,45585,22500,23085,6105,2773,5832,25.26%,-17253,,,2600,2270,330,5832,260,1000`;
+      const DEFAULT_CSV = `月份,目标收入,目标支出,目标存款,实际收入,实际支出,实际存款,存款完成率,偏差,,月份,越南盾兑换,支出,结余（越南盾 单位万）,结余（usdt 单位U）,结余（visa 单位美元）,结余（现金 单位美元）,结余（现金 单位马币）
+2026-04,5305,2500,2805,5525,2673,5352,190.80%,2547,,2026-04,2600,2270,330,5352,260,1000,515
+2026-05,5245,2500,2745,580,100,480,17.49%,-2265,,2026-05,,,0,480,-20,,
+2026-06,5185,2500,2685,,,0,0.00%,-2685,,2026-06,,,0,0,,,
+2026-07,5125,2500,2625,,,0,0.00%,-2625,,2026-07,,,0,0,,,
+2026-08,5065,2500,2565,,,0,0.00%,-2565,,2026-08,,,0,0,,,
+2026-09,5005,2500,2505,,,0,0.00%,-2505,,2026-09,,,0,0,,,
+2026-10,4945,2500,2445,,,0,0.00%,-2445,,2026-10,,,0,0,,,
+2026-11,4885,2500,2385,,,0,0.00%,-2385,,2026-11,,,0,0,,,
+2026-12,4825,2500,2325,,,0,0.00%,-2325,,2026-12,,,0,0,,,
+,45585,22500,23085,6105,2773,5832,25.26%,-17253,,,2600,2270,330,5832,240,1000,515`;
 
       const BASE_EXPENSE_CATEGORIES = [
         { name: "房租", value: 500 },
@@ -841,8 +841,9 @@
       const FALLBACK_ACCOUNTS = [
         { name: "越南盾", value: 330, unit: "万" },
         { name: "USDT", value: 5832, unit: "U" },
-        { name: "Visa", value: 260, unit: "美元" },
+        { name: "Visa", value: 240, unit: "美元" },
         { name: "美金现金", value: 1000, unit: "美元" },
+        { name: "马币现金", value: 515, unit: "马币" },
       ];
 
       const colorMap = {
@@ -931,12 +932,13 @@
       }
 
       function normalizeExchangeRates(data) {
-        if (data.result !== "success" || !data.rates?.CNY || !data.rates?.VND) {
+        if (data.result !== "success" || !data.rates?.CNY || !data.rates?.VND || !data.rates?.MYR) {
           throw new Error("rates missing");
         }
         return {
           cnyPerUsd: data.rates.CNY,
           vndPerUsd: data.rates.VND,
+          myrPerUsd: data.rates.MYR,
           updatedAt: data.time_last_update_utc,
         };
       }
@@ -995,6 +997,7 @@
             usdtBalance: toNumber(row[14]),
             visaBalance: toNumber(row[15]),
             usdCashBalance: toNumber(row[16]),
+            myrCashBalance: toNumber(row[17]),
           };
           const hasCurrencyValue =
             currency.exchange ||
@@ -1002,7 +1005,8 @@
             currency.vndBalance ||
             currency.usdtBalance ||
             currency.visaBalance ||
-            currency.usdCashBalance;
+            currency.usdCashBalance ||
+            currency.myrCashBalance;
 
           if (hasCurrencyValue) {
             if (currency.month && currency.month !== "合计") {
@@ -1047,7 +1051,13 @@
           currencyTotal ||
           [...currencyRows].reverse().find(
             (row) =>
-              row.exchange || row.expense || row.vndBalance || row.usdtBalance || row.visaBalance || row.usdCashBalance,
+              row.exchange ||
+              row.expense ||
+              row.vndBalance ||
+              row.usdtBalance ||
+              row.visaBalance ||
+              row.usdCashBalance ||
+              row.myrCashBalance,
           );
         const accounts = latestCurrency
           ? [
@@ -1055,6 +1065,7 @@
               { name: "USDT", value: latestCurrency.usdtBalance, unit: "U" },
               { name: "Visa", value: latestCurrency.visaBalance, unit: "美元" },
               { name: "美金现金", value: latestCurrency.usdCashBalance, unit: "美元" },
+              { name: "马币现金", value: latestCurrency.myrCashBalance, unit: "马币" },
             ]
           : FALLBACK_ACCOUNTS;
 
@@ -1109,6 +1120,7 @@
                 { name: "USDT", value: row.usdtBalance, unit: "U" },
                 { name: "Visa", value: row.visaBalance, unit: "美元" },
                 { name: "美金现金", value: row.usdCashBalance, unit: "美元" },
+                { name: "马币现金", value: row.myrCashBalance, unit: "马币" },
               ]
             : FALLBACK_ACCOUNTS,
           expenseCategories: buildExpenseCategories(scopedTotal.expense),
@@ -1598,6 +1610,9 @@
         if (account.name === "越南盾") {
           const vndAmount = value * 10000;
           return (vndAmount / exchangeRates.vndPerUsd) * exchangeRates.cnyPerUsd;
+        }
+        if (account.unit === "马币") {
+          return (value / exchangeRates.myrPerUsd) * exchangeRates.cnyPerUsd;
         }
         if (account.name === "USDT" || account.unit === "美元") {
           return value * exchangeRates.cnyPerUsd;
