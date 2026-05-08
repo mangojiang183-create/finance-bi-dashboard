@@ -323,7 +323,7 @@
       }
 
       .progress-panel .chart {
-        height: 360px;
+        height: 430px;
       }
 
       .progress-head {
@@ -484,6 +484,46 @@
         color: var(--muted);
         font-size: 13px;
         line-height: 1.65;
+      }
+
+      .insight-progress {
+        margin-top: 14px;
+      }
+
+      .insight-progress-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 7px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .insight-progress-track {
+        height: 8px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e2e8f0;
+      }
+
+      .insight-progress-fill {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--blue);
+      }
+
+      .insight-progress-fill.green {
+        background: var(--green);
+      }
+
+      .insight-progress-fill.amber {
+        background: var(--amber);
+      }
+
+      .insight-progress-fill.red {
+        background: var(--red);
       }
 
       .detail-table-wrap {
@@ -1283,6 +1323,8 @@
                 position: "insideTop",
                 color: "#ffffff",
                 fontWeight: 800,
+                fontSize: 10,
+                lineHeight: 12,
                 formatter: ({ value }) => (Number(value) ? formatNumber(value) : ""),
               },
               data: monthly.map((row) => row.saving),
@@ -1461,11 +1503,15 @@
         const month = data.latestActual || {};
         const total = data.total || {};
         const completion = rate(total.saving, total.targetSaving);
+        const monthCompletion = rate(month.saving, month.targetSaving);
         const monthlyAverage = average(data.monthly.filter((row) => row.saving > 0), "saving");
         const remainingTarget = Math.max(total.targetSaving - total.saving, 0);
         const remainingMonths = data.monthly.filter((row) => row.saving === 0).length || 1;
         const requiredMonthlySaving = remainingTarget / remainingMonths;
         const projectedSaving = total.saving + monthlyAverage * remainingMonths;
+        const projectedCompletion = rate(projectedSaving, total.targetSaving);
+        const budgetUsage = rate(month.expense, month.targetExpense);
+        const gapRate = rate(remainingTarget, total.targetSaving);
         const risk =
           month.expense > month.targetExpense
             ? `本月支出超过预算 ${formatNumber(month.expense - month.targetExpense)}，会压缩存款空间。`
@@ -1477,15 +1523,22 @@
           {
             title: "本月总结",
             body: `本月收入 ${formatNumber(month.income)}，支出 ${formatNumber(month.expense)}，结余 ${formatSigned(month.netBalance)}，存款完成率 ${formatPercent(month.savingRate)}。`,
+            progress: { label: "本月目标进度", value: monthCompletion, color: monthCompletion >= 1 ? "green" : "amber" },
           },
-          { title: "风险提醒", body: risk },
+          {
+            title: "风险提醒",
+            body: risk,
+            progress: { label: "预算使用率", value: budgetUsage, color: budgetUsage > 1 ? "red" : "green" },
+          },
           {
             title: "存款目标预测",
             body: `按当前有效月份均值测算，年度预计存款约 ${formatNumber(projectedSaving)}，当前完成率 ${formatPercent(completion)}。`,
+            progress: { label: "年度目标进度", value: projectedCompletion, color: projectedCompletion >= 1 ? "green" : "blue" },
           },
           {
             title: "下月建议",
             body: `若要追上年度目标，剩余月份平均需存 ${formatNumber(requiredMonthlySaving)}。优先控制非固定消费，并保持收入记录完整。`,
+            progress: { label: "剩余缺口", value: gapRate, color: gapRate > 0.5 ? "red" : "amber" },
           },
         ];
 
@@ -1495,9 +1548,26 @@
               <div class="insight-card">
                 <h3>${item.title}</h3>
                 <p>${item.body}</p>
+                ${renderInsightProgress(item.progress)}
               </div>`,
           )
           .join("");
+      }
+
+      function renderInsightProgress(progress) {
+        if (!progress) return "";
+        const rawValue = Number(progress.value) || 0;
+        const width = Math.min(Math.max(rawValue, 0), 1) * 100;
+        return `
+          <div class="insight-progress">
+            <div class="insight-progress-head">
+              <span>${progress.label}</span>
+              <span>${formatPercent(rawValue)}</span>
+            </div>
+            <div class="insight-progress-track">
+              <span class="insight-progress-fill ${progress.color || ""}" style="width:${width}%"></span>
+            </div>
+          </div>`;
       }
 
       function renderDetailTable(monthly, total) {
